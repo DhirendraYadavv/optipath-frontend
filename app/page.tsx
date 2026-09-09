@@ -119,7 +119,7 @@ const DEFAULT_COMPANIES: Company[] = [
 ];
 
 // Luxury Spring Transitions
-const pageVariants = {
+const pageVariants : any = {
   initial: { 
     opacity: 0, 
     y: 18, 
