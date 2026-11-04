@@ -1,0 +1,50 @@
+On branch main
+Your branch is up to date with 'origin/main'.
+
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git restore <file>..." to discard changes in working directory)
+	modified:   app/layout.tsx
+	modified:   app/page.tsx
+
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+	0
+	app/analytics/
+	app/career-paths/
+	app/components/
+	app/dashboard/
+	app/gap-analysis/
+	app/live-jobs/
+	app/login/
+	app/onboard/
+	app/recruiter/
+	app/roadmap/
+	components/
+	data/
+	git.txt
+	next
+	npm
+	optipath-frontend@0.1.0
+	powershell
+	public/sgt-online-logo.png
+	setActiveTab(builder)}
+	setActiveTab(defense)}
+	setActiveTab(polisher)}
+	setLoading(false))
+	setRawBullet(e.target.value)}
+	setShowAuthModal(true)}
+	setShowCompaniesModal(true)}
+	setShowProjectsModal(true)}
+	tree.txt
+	update_gap.py
+	void
+	{})
+
+no changes added to commit (use "git add" and/or "git commit -a")
+c10f13e fix: add missing @react-oauth/google dependency
+6456248 fix: bypass strict easing variant type check
+8dd15ad fix: type assertion for transition easing
+946f976 feat: luxury editorial UI with smooth transitions and live backend sync
+077abef Add persistent back buttons across all form and results screens
+039910e Complete OptiPath React Flow frontend
