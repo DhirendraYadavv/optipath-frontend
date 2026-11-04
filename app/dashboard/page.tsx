@@ -1,350 +1,302 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { 
-  ArrowLeft, 
-  CheckCircle2, 
-  Clock, 
-  Sparkles, 
-  Target, 
-  Search, 
-  ArrowRight,
-  LogOut,
-  Check,
-  ChevronDown,
-  ChevronUp,
-  Layers
-} from "lucide-react";
-import { ALL_500_PLUS_ROLES } from "@/data/salaryAndRolesData";
+import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Hourglass, Info, ListChecks, LogOut, Target } from "lucide-react";
+import RoleSearch from "@/components/RoleSearch";
+import CareerActions from "@/components/CareerActions";
+import { analyzeAcademicGap, goalSkillsInCourse, AcademicStatus } from "@/lib/skillMatch";
+import { StoredStudent, buildAcademicView } from "@/lib/sgtStudent";
 
-// Canonical Master Curriculum for SGT BCA/MCA structure
-const MASTER_CURRICULUM: Record<number, string[]> = {
-  1: ["Programming in C", "Mathematical Foundations of Computer Science", "Digital Electronics & Logic Design", "Communication Skills & Professional Ethics"],
-  2: ["Data Structures & Algorithms in C++", "Database Management Systems (SQL)", "Computer Organization & Architecture", "Discrete Mathematics"],
-  3: ["Object-Oriented Programming with Java", "Operating Systems Concepts", "Computer Networks & Data Communication", "Web Technologies (HTML/CSS/JS)"],
-  4: ["Design & Analysis of Algorithms", "Python for Computing & Scripting", "Software Engineering & Agile Methodologies", "Linux System Administration"],
-  5: ["Cloud Computing & Virtualization", "Information & Network Security", "Full Stack Web Development", "Elective I: Artificial Intelligence Fundamentals"],
-  6: ["Distributed Systems & Big Data", "DevOps & Container Orchestration", "Mobile Application Development", "Major Capstone Industry Project"]
+const STATUS_STYLE: Record<AcademicStatus, { label: string; chip: string; box: string }> = {
+  completed: { label: "Completed", chip: "bg-emerald-100 text-emerald-900", box: "bg-emerald-50/70 border-emerald-200" },
+  in_progress: { label: "This semester", chip: "bg-amber-100 text-amber-900", box: "bg-amber-50/70 border-amber-200" },
+  upcoming: { label: "Upcoming", chip: "bg-sky-100 text-sky-900", box: "bg-sky-50/70 border-sky-200" },
+  self_learn: { label: "Learn on your own", chip: "bg-rose-100 text-rose-900", box: "bg-rose-50/70 border-rose-200" },
 };
+
+function CourseRow({ course, role, tone }: { course: string; role: string; tone: string }) {
+  const tags = goalSkillsInCourse(role, course);
+  return (
+    <div className={`p-2.5 border rounded-xl text-xs ${tone}`}>
+      <span className="font-medium text-[#0E1726]">{course}</span>
+      {tags.length > 0 && (
+        <div className="flex flex-wrap gap-1 mt-1.5">
+          {tags.map((t) => (
+            <span key={t} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white border border-[#DDD8CE] text-[#831843]">
+              Helps: {t}
+            </span>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const router = useRouter();
-
-  const [student, setStudent] = useState<any>({
-    fullName: "Dhirendra Yadav",
-    registrationNo: "SGT2023BCA1042",
-    program: "Bachelor of Computer Applications (BCA)",
-    semester: 4,
-    cgpa: "8.74"
-  });
-
-  const [canonicalSkills, setCanonicalSkills] = useState<string[]>([
-    "Python", "DSA", "DBMS / SQL", "Git", "Object-Oriented Programming", "Linux Basics"
-  ]);
-
-  const [selectedRole, setSelectedRole] = useState<string>("Software Development Engineer 1 (SDE 1)");
-  const [roleSearchTerm, setRoleSearchTerm] = useState<string>("");
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [student, setStudent] = useState<StoredStudent | null>(null);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem("optipath_student");
-    let currentSem = 4;
-    let reg = "SGT2023BCA1042";
-
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        currentSem = Number(parsed.semester) || 4;
-        reg = parsed.registrationNo || reg;
-
-        setStudent({
-          fullName: parsed.fullName || "Dhirendra Yadav",
-          registrationNo: parsed.registrationNo || reg,
-          program: parsed.program || "Bachelor of Computer Applications (BCA)",
-          semester: currentSem,
-          cgpa: parsed.cgpa || "8.74"
-        });
-      } catch {}
-    } else {
-      router.push("/login");
+    if (!saved) {
+      router.replace("/login");
+      return;
     }
-
-    // Attempt backend sync
-    fetch(`http://localhost:8000/students/academic-profile/${encodeURIComponent(reg)}`)
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.acquiredSkills && data.acquiredSkills.length > 0) {
-          setCanonicalSkills(data.acquiredSkills);
-        }
-      })
-      .catch(() => {});
+    try {
+      const parsed = JSON.parse(saved);
+      if (parsed?.isExternal || String(parsed?.registrationNo || "").startsWith("EXT-")) {
+        const role = parsed.targetRole || parsed.goal || "";
+        router.replace(role ? `/gap-analysis?role=${encodeURIComponent(role)}` : "/onboard");
+        return;
+      }
+      setStudent(parsed as StoredStudent);
+      setReady(true);
+    } catch {
+      localStorage.removeItem("optipath_student");
+      router.replace("/login");
+    }
   }, [router]);
 
-  // Dynamically compute coursework according to the student's exact semester
-  const pastSubjects = useMemo(() => {
-    const sem = Number(student.semester) || 1;
-    const courses: string[] = [];
-    for (let s = 1; s < sem; s++) {
-      if (MASTER_CURRICULUM[s]) courses.push(...MASTER_CURRICULUM[s]);
-    }
-    return courses;
-  }, [student.semester]);
+  const view = useMemo(() => (student ? buildAcademicView(student) : null), [student]);
 
-  const activeSubjects = useMemo(() => {
-    const sem = Number(student.semester) || 1;
-    return MASTER_CURRICULUM[sem] || [];
-  }, [student.semester]);
+  const analysis = useMemo(() => {
+    if (!student || !view || !student.goal) return null;
+    return analyzeAcademicGap(student.goal, {
+      completed: view.completed.courses,
+      inProgress: view.inProgress.courses,
+      upcoming: view.upcoming,
+    });
+  }, [student, view]);
 
-  const upcomingSubjects = useMemo(() => {
-    const sem = Number(student.semester) || 1;
-    const courses: { name: string; sem: number }[] = [];
-    for (let s = sem + 1; s <= 6; s++) {
-      if (MASTER_CURRICULUM[s]) {
-        MASTER_CURRICULUM[s].forEach((c) => courses.push({ name: c, sem: s }));
-      }
-    }
-    return courses;
-  }, [student.semester]);
-
-  const filteredRoles = useMemo(() => {
-    const catalog = ALL_500_PLUS_ROLES && ALL_500_PLUS_ROLES.length > 0 
-      ? ALL_500_PLUS_ROLES 
-      : [
-          "Software Development Engineer 1 (SDE 1)",
-          "Backend Developer (Python/FastAPI/Django)",
-          "Full Stack Developer (Next.js & Spring Boot)",
-          "Frontend Engineer (React / TypeScript)",
-          "Cloud & DevOps Engineer (Docker/K8s/AWS)",
-          "Data Scientist & AI Engineer",
-          "Cybersecurity & SOC Analyst",
-          "Distributed Systems Architect"
-        ];
-    if (!roleSearchTerm.trim()) return catalog.slice(0, 50);
-    return catalog.filter((r: string) => r.toLowerCase().includes(roleSearchTerm.toLowerCase())).slice(0, 50);
-  }, [roleSearchTerm]);
-
-  const handleProceed = () => {
-    router.push(`/gap-analysis?role=${encodeURIComponent(selectedRole)}`);
+  const setGoal = (goal: string) => {
+    if (!student) return;
+    const next = { ...student, goal };
+    setStudent(next);
+    localStorage.setItem("optipath_student", JSON.stringify(next));
   };
+
+  const signOut = () => {
+    localStorage.removeItem("optipath_student");
+    localStorage.removeItem("optipath_token");
+    router.push("/");
+  };
+
+  if (!ready || !student || !view) {
+    return <div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading your dashboard...</div>;
+  }
+
+  const selfLearn = analysis?.rows.filter((r) => r.status === "self_learn") ?? [];
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
-
-        {/* Top Header */}
+        {/* Top bar */}
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
           <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
-            <ArrowLeft className="w-4 h-4" /> Return to Home
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-          <div className="flex items-center gap-4">
-            <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">
-              Step 2A &bull; Semester {student.semester} Academic Hub
-            </span>
-            <button
-              onClick={() => {
-                localStorage.removeItem("optipath_student");
-                localStorage.removeItem("optipath_token");
-                router.push("/login");
-              }}
-              className="inline-flex items-center gap-1 text-xs text-rose-700 hover:underline font-semibold cursor-pointer border-l border-[#DDD8CE] pl-3"
-            >
-              <LogOut className="w-3.5 h-3.5" /> Sign Out
-            </button>
-          </div>
+          <button onClick={signOut} className="inline-flex items-center gap-1 text-xs text-rose-700 hover:underline font-semibold cursor-pointer">
+            <LogOut className="w-3.5 h-3.5" /> End session
+          </button>
         </div>
 
-        {/* 1. Academic Overview & Verification Badge */}
-        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
-          <div className="space-y-1.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] font-mono font-bold text-emerald-800">
-              <span className="w-2 h-2 rounded-full bg-emerald-600 animate-pulse" />
-              SGT Verified Student Record
-            </div>
-            <h1 className="font-serif text-3xl font-bold text-[#0E1726]">{student.fullName}</h1>
-            <p className="text-xs text-[#526173]">
-              Registration No: <b className="font-mono text-[#0E1726]">{student.registrationNo}</b> &bull; Program: <span className="font-semibold text-[#0E1726]">{student.program}</span>
-            </p>
+        {student.dataSource === "dev-fallback" && (
+          <div className="p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-900 flex items-start gap-2">
+            <Info className="w-4 h-4 shrink-0 mt-0.5" />
+            Local test data: the server was not reachable, so this is a sample student. This never happens in production.
           </div>
-          <div className="flex items-center gap-4 bg-[#FAF8F5] p-4 rounded-2xl border border-[#EAE4D9]">
-            <div className="text-center pr-4 border-r border-[#DDD8CE]">
-              <span className="text-[10px] text-[#64748B] uppercase font-bold block">Current Standing</span>
-              <span className="font-serif text-xl font-bold text-[#831843]">Semester {student.semester}</span>
-            </div>
-            <div className="text-center">
-              <span className="text-[10px] text-[#64748B] uppercase font-bold block">Academic CGPA</span>
-              <span className="font-serif text-xl font-bold text-emerald-800">{student.cgpa}</span>
-            </div>
-          </div>
-        </div>
+        )}
 
-        {/* 2. Subjects Breakdown (Past vs Active vs Upcoming) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Subjects Studied Till Now (Semesters < Current) */}
-          <div className="bg-white rounded-3xl border border-emerald-200 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-emerald-100">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-                <h3 className="font-serif font-bold text-base text-emerald-950">
-                  Subjects Studied Till Now ({pastSubjects.length})
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-900">
-                Semesters 1 to {Math.max(1, student.semester - 1)}
-              </span>
-            </div>
-            <p className="text-xs text-[#526173]">
-              Passed courses verified by completed academic transcripts:
-            </p>
-            <div className="space-y-1.5 max-h-64 overflow-y-auto pr-1">
-              {pastSubjects.length > 0 ? (
-                pastSubjects.map((c: string) => (
-                  <div key={c} className="p-2.5 bg-emerald-50/70 border border-emerald-100 rounded-xl flex items-center justify-between text-xs text-emerald-950 font-medium">
-                    <span>✓ {c}</span>
-                    <span className="text-[10px] font-mono text-emerald-700 font-bold">Passed</span>
-                  </div>
-                ))
-              ) : (
-                <div className="p-3 text-center text-xs text-[#64748B] bg-[#FAF8F5] rounded-xl">
-                  First semester in progress. No prior degree semesters recorded.
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Upcoming Subjects (Semesters > Current) & Active Semester */}
-          <div className="bg-white rounded-3xl border border-amber-200 p-6 shadow-xs space-y-4">
-            <div className="flex items-center justify-between pb-3 border-b border-amber-100">
-              <div className="flex items-center gap-2">
-                <Clock className="w-4 h-4 text-amber-700" />
-                <h3 className="font-serif font-bold text-base text-amber-950">
-                  Active & Scheduled Subjects
-                </h3>
-              </div>
-              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-amber-100 text-amber-900">
-                Semester {student.semester}+
-              </span>
-            </div>
-
-            {/* Currently Active Semester */}
+        {/* 1. Profile & goal */}
+        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs space-y-6">
+          <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="space-y-1.5">
-              <span className="text-[10px] font-mono font-bold text-amber-900 uppercase block">
-                Currently Enrolled &bull; Semester {student.semester}:
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] font-mono font-bold text-emerald-800">
+                <span className="w-2 h-2 rounded-full bg-emerald-600" /> SGT student record
+              </div>
+              <h1 className="font-serif text-3xl font-bold">{student.fullName}</h1>
+              <p className="text-xs text-[#526173]">
+                Registration No: <b className="font-mono text-[#0E1726]">{student.registrationNo}</b> &bull; Program:{" "}
+                <b className="text-[#0E1726]">{view.program ? view.program.name : student.program || "Not available"}</b>
+              </p>
+            </div>
+            <div className="text-center p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9] min-w-[130px]">
+              <span className="text-[10px] text-[#64748B] uppercase font-bold block">Current semester</span>
+              <span className="font-serif text-2xl font-bold text-[#831843]">
+                {student.currentSemester}
+                {view.totalSemesters > 0 && <span className="text-sm text-[#64748B]"> / {view.totalSemesters}</span>}
               </span>
-              {activeSubjects.map((c: string) => (
-                <div key={c} className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-amber-950 font-medium">
-                  <span>⏱ {c}</span>
-                  <span className="text-[9px] font-mono bg-amber-200 text-amber-900 px-1.5 py-0.5 rounded font-bold">Active</span>
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-[#EAE4D9]">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[#831843] flex items-center gap-1.5">
+              <Target className="w-4 h-4" /> Your goal
+            </label>
+            <RoleSearch value={student.goal} onChange={setGoal} suggested={view.program?.careerRoles ?? []} />
+          </div>
+
+          {analysis && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9]">
+                <span className="text-[10px] text-[#64748B] uppercase font-bold block">Covered by completed courses</span>
+                <span className="font-serif text-3xl font-bold text-emerald-800">{analysis.readyNowPercent}%</span>
+                <span className="text-[11px] text-[#526173] block mt-0.5">{analysis.counts.completed} of {analysis.total} skills this goal needs</span>
+              </div>
+              <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9]">
+                <span className="text-[10px] text-[#64748B] uppercase font-bold block">After your mapped syllabus</span>
+                <span className="font-serif text-3xl font-bold text-[#831843]">{analysis.afterSyllabusPercent}%</span>
+                <span className="text-[11px] text-[#526173] block mt-0.5">
+                  includes this semester and upcoming semesters we have the syllabus for
+                </span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {!view.program && (
+          <div className="p-4 bg-rose-50 border border-rose-200 rounded-2xl text-xs text-rose-900 flex items-start gap-2">
+            <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
+            The program &ldquo;{student.program || "unknown"}&rdquo; is not in the syllabus catalogue yet, so we cannot map your courses to your goal.
+          </div>
+        )}
+
+        {analysis && (
+          <>
+            {/* 2. Important topics */}
+            <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#EAE4D9]">
+                <div className="flex items-center gap-2">
+                  <ListChecks className="w-4 h-4 text-[#831843]" />
+                  <h3 className="font-serif font-bold text-base">Topics that matter for this goal</h3>
                 </div>
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-[#FAF8F5] border border-[#DDD8CE] text-[#526173]">
+                  {analysis.familyLabel}
+                </span>
+              </div>
+              <p className="text-xs text-[#526173]">
+                Each topic is checked against your course titles. {analysis.confidence === "medium" && "This goal is matched to the closest standard role template. "}
+                {analysis.confidence === "low" && "There is no dedicated template for this occupation, so general fundamentals are used. "}
+                Matching is by keywords in course titles, so a course can teach more than its title says.
+              </p>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                {analysis.rows.map((r) => {
+                  const st = STATUS_STYLE[r.status];
+                  return (
+                    <div key={r.skill.id} className={`p-3.5 border rounded-2xl space-y-1 ${st.box}`}>
+                      <div className="flex items-start justify-between gap-2">
+                        <span className="text-xs font-bold text-[#0E1726]">{r.skill.label}</span>
+                        <span className={`text-[9px] font-mono font-bold px-2 py-0.5 rounded shrink-0 ${st.chip}`}>
+                          {r.status === "upcoming" && r.semester ? `Sem ${r.semester}` : st.label}
+                        </span>
+                      </div>
+                      {r.viaCourse && <p className="text-[11px] text-[#526173]">Through: {r.viaCourse}</p>}
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          </>
+        )}
+
+        {/* 3. Completed */}
+        <div className="bg-white rounded-3xl border border-emerald-200 p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-emerald-100">
+            <div className="flex items-center gap-2">
+              <CheckCircle2 className="w-4 h-4 text-emerald-700" />
+              <h3 className="font-serif font-bold text-base text-emerald-950">Completed ({view.completed.courses.length})</h3>
+            </div>
+            <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-900">
+              {view.completed.source === "backend" ? "Verified record" : view.completed.source === "catalog" ? "From syllabus" : "None yet"}
+            </span>
+          </div>
+          {view.completed.note && <p className="text-xs text-[#526173]">{view.completed.note}</p>}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2 max-h-80 overflow-y-auto pr-1">
+            {view.completed.courses.map((c, i) => (
+              <CourseRow key={`${c}-${i}`} course={c} role={student.goal} tone="bg-emerald-50/70 border-emerald-100" />
+            ))}
+          </div>
+        </div>
+
+        {/* 4. In progress */}
+        <div className="bg-white rounded-3xl border border-amber-200 p-6 shadow-xs space-y-3">
+          <div className="flex items-center justify-between pb-2 border-b border-amber-100">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-amber-700" />
+              <h3 className="font-serif font-bold text-base text-amber-950">In progress &bull; Semester {student.currentSemester}</h3>
+            </div>
+          </div>
+          {view.inProgress.loaded ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              {view.inProgress.courses.map((c, i) => (
+                <CourseRow key={`${c}-${i}`} course={c} role={student.goal} tone="bg-amber-50/80 border-amber-200" />
               ))}
             </div>
-
-            {/* Future Semesters */}
-            <div className="space-y-1.5 pt-2 border-t border-amber-100">
-              <span className="text-[10px] font-mono font-bold text-[#64748B] uppercase block">
-                Scheduled for Future Semesters:
-              </span>
-              <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
-                {upcomingSubjects.length > 0 ? (
-                  upcomingSubjects.map((item, idx) => (
-                    <div key={idx} className="p-2 bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl flex items-center justify-between text-xs text-[#526173]">
-                      <span>&bull; {item.name}</span>
-                      <span className="text-[9px] font-mono bg-white border border-[#DDD8CE] text-[#831843] px-1.5 py-0.5 rounded font-bold">
-                        Sem {item.sem}
-                      </span>
-                    </div>
-                  ))
-                ) : (
-                  <span className="text-xs text-emerald-800 font-semibold block pt-1">
-                    Final semester reached. All degree coursework active or completed.
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+          ) : (
+            <p className="text-xs text-[#526173]">Syllabus for Semester {student.currentSemester} not yet loaded.</p>
+          )}
         </div>
 
-        {/* 3. Choose Your Career Path Selection (Bottom Section) */}
-        <div className="bg-white rounded-3xl border-2 border-[#831843] p-8 shadow-md space-y-5">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-1.5">
-              <Target className="w-4 h-4" /> Step 3: Choose Your Career Path
-            </span>
-            <h2 className="font-serif text-2xl font-bold text-[#0E1726]">
-              Select Your Target Professional Destination
-            </h2>
-            <p className="text-xs text-[#526173]">
-              The gap engine will cross-reference your past coursework and upcoming semesters against this exact industry specification.
-            </p>
+        {/* 5. Coming up */}
+        <div className="bg-white rounded-3xl border border-sky-200 p-6 shadow-xs space-y-4">
+          <div className="flex items-center gap-2 pb-2 border-b border-sky-100">
+            <Hourglass className="w-4 h-4 text-sky-700" />
+            <h3 className="font-serif font-bold text-base text-sky-950">Coming up in later semesters</h3>
           </div>
-
-          <div className="space-y-2">
-            <div 
-              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-              className="p-4 bg-[#FAF8F5] border-2 border-[#831843] rounded-2xl flex items-center justify-between cursor-pointer hover:bg-white transition"
-            >
-              <div>
-                <span className="text-[10px] font-mono uppercase font-bold text-[#831843] block">Target Role Selected:</span>
-                <span className="font-serif font-bold text-base text-[#0E1726]">{selectedRole}</span>
+          {view.upcoming.map((g) => (
+            <div key={g.semester} className="space-y-2">
+              <span className="text-[10px] font-mono font-bold text-sky-900 uppercase block">Semester {g.semester}</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {g.courses.map((c, i) => (
+                  <CourseRow key={`${c}-${i}`} course={c} role={student.goal} tone="bg-sky-50/70 border-sky-200" />
+                ))}
               </div>
-              <button 
-                type="button"
-                className="px-4 py-1.5 bg-white border border-[#DDD8CE] rounded-xl text-xs font-bold text-[#831843] flex items-center gap-1 cursor-pointer"
-              >
-                {isDropdownOpen ? "Close Search" : "Change Role"}
-                {isDropdownOpen ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-              </button>
             </div>
+          ))}
+          {view.unmappedSemesters.length > 0 && (
+            <p className="text-xs text-[#526173] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3">
+              Syllabus for Semester{view.unmappedSemesters.length > 1 ? "s" : ""} {view.unmappedSemesters.join(", ")} not yet loaded.
+              Topics from those semesters are not counted above, so some items listed under &ldquo;learn on your own&rdquo; may be covered later in your degree.
+            </p>
+          )}
+          {view.upcoming.length === 0 && view.unmappedSemesters.length === 0 && (
+            <p className="text-xs text-emerald-800 font-semibold">You are in the final semester of the mapped syllabus.</p>
+          )}
+        </div>
 
-            {isDropdownOpen && (
-              <div className="p-4 bg-white border border-[#E5DFD5] rounded-2xl shadow-lg space-y-3">
-                <div className="relative">
-                  <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
-                  <input
-                    type="text"
-                    value={roleSearchTerm}
-                    onChange={(e) => setRoleSearchTerm(e.target.value)}
-                    placeholder="Search roles (e.g. SDE, AI Engineer, Backend, DevOps, Cyber)..."
-                    className="w-full pl-8 pr-4 py-2.5 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]"
-                  />
-                </div>
-
-                <div className="max-h-52 overflow-y-auto space-y-1 pr-1">
-                  {filteredRoles.map((role: string) => (
-                    <div
-                      key={role}
-                      onClick={() => {
-                        setSelectedRole(role);
-                        setIsDropdownOpen(false);
-                      }}
-                      className={`p-2.5 rounded-xl text-xs flex items-center justify-between cursor-pointer transition ${
-                        selectedRole === role ? "bg-[#831843] text-white font-bold" : "hover:bg-[#FAF8F5] text-[#0E1726]"
-                      }`}
-                    >
-                      <span>{role}</span>
-                      {selectedRole === role && <Check className="w-3.5 h-3.5" />}
+        {/* 6. Self-learning */}
+        {analysis && (
+          <div className="bg-white rounded-3xl border-2 border-rose-300 p-6 shadow-xs space-y-3">
+            <div className="flex items-center justify-between pb-2 border-b border-rose-100">
+              <div className="flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4 text-rose-700" />
+                <h3 className="font-serif font-bold text-base text-rose-950">Learn on your own ({selfLearn.length})</h3>
+              </div>
+              <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-rose-100 text-rose-900 uppercase">Action needed</span>
+            </div>
+            {selfLearn.length === 0 ? (
+              <p className="text-xs text-emerald-800 font-semibold">Every topic for this goal appears in your mapped syllabus.</p>
+            ) : (
+              <>
+                <p className="text-xs text-[#526173]">No course in your mapped syllabus covers these topics. Plan to learn them yourself:</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {selfLearn.map((r) => (
+                    <div key={r.skill.id} className="p-3.5 bg-rose-50/70 border border-rose-200 rounded-2xl space-y-1">
+                      <span className="text-xs font-bold text-rose-950 block">&#10005; {r.skill.label}</span>
+                      <p className="text-[11px] text-rose-900 leading-relaxed">{r.skill.reason}</p>
                     </div>
                   ))}
                 </div>
-              </div>
+              </>
             )}
           </div>
+        )}
 
-          <div className="flex items-center justify-between pt-3 border-t border-[#EAE4D9]">
-            <span className="text-xs text-[#526173]">
-              Ready to evaluate against <b className="text-[#0E1726]">{selectedRole}</b>?
-            </span>
-            <button
-              onClick={handleProceed}
-              className="px-8 py-3.5 bg-[#831843] hover:bg-[#701237] text-white font-bold text-xs uppercase tracking-wider rounded-xl shadow-xs transition flex items-center gap-2 cursor-pointer"
-            >
-              Run 3-Tier Skill Gap Engine <ArrowRight className="w-4 h-4" />
-            </button>
-          </div>
-        </div>
-
+        {/* 7. Locked actions */}
+        {student.goal && <CareerActions role={student.goal} />}
       </div>
     </div>
   );

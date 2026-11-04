@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, User, GraduationCap, Briefcase, Target, ArrowRight } from "lucide-react";
+import { ArrowLeft, ArrowRight, Briefcase, GraduationCap, Target, User, Wrench } from "lucide-react";
+import RoleSearch from "@/components/RoleSearch";
+import { QUALIFICATIONS, Qualification } from "@/lib/programRecommend";
 
 const POPULAR_ROLES = [
   "Software Development Engineer 1 (SDE 1)",
@@ -13,64 +15,92 @@ const POPULAR_ROLES = [
   "Cloud & DevOps Engineer (Docker/K8s/AWS)",
   "Data Scientist & AI Engineer",
   "Cybersecurity & SOC Analyst",
-  "Blockchain & Smart Contract Developer"
+  "Blockchain & Smart Contract Developer",
 ];
+
+const inputCls = "w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843] bg-white";
+const labelCls = "text-xs font-bold text-[#526173] block mb-1";
 
 export default function NonSgtOnboardingPage() {
   const router = useRouter();
-
-  const [formData, setFormData] = useState({
+  const [existingId, setExistingId] = useState<string>("");
+  const [error, setError] = useState("");
+  const [form, setForm] = useState({
     name: "",
     age: "",
-    marks10: "",
-    marks12: "",
-    graduationDegree: "",
-    graduationMarks: "",
-    postGradDegree: "",
-    postGradMarks: "",
-    employmentStatus: "Fresher",
+    profession: "",
     experienceYears: "0",
-    currentStack: "",
-    targetRole: POPULAR_ROLES[0]
+    qualification: "" as Qualification | "",
+    skills: "",
+    targetRole: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // Pre-fill when an external candidate comes back to edit their answers.
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("optipath_student");
+      if (!saved) return;
+      const s = JSON.parse(saved);
+      if (!(s?.isExternal || String(s?.registrationNo || "").startsWith("EXT-"))) return;
+      setExistingId(s.registrationNo || "");
+      setForm({
+        name: s.fullName || "",
+        age: s.age ? String(s.age) : "",
+        profession: s.profession || "",
+        experienceYears: s.experienceYears != null ? String(s.experienceYears) : "0",
+        qualification: s.qualification || "",
+        skills: s.employment?.currentStack || "",
+        targetRole: s.targetRole || "",
+      });
+    } catch {
+      // ignore unreadable saved data
+    }
+  }, []);
+
+  const set = (name: string, value: string) => setForm((f) => ({ ...f, [name]: value }));
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => set(e.target.name, e.target.value);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setError("");
+    if (!form.targetRole) {
+      setError("Please choose your goal role.");
+      return;
+    }
+    if (!form.qualification) {
+      setError("Please choose your highest qualification.");
+      return;
+    }
+    const age = Number(form.age);
+    if (!Number.isFinite(age) || age < 14 || age > 80) {
+      setError("Please enter a valid age (14 to 80).");
+      return;
+    }
+    const years = Number(form.experienceYears);
+    if (!Number.isFinite(years) || years < 0 || years > 50) {
+      setError("Please enter years of experience between 0 and 50.");
+      return;
+    }
 
-    // Map external academic profile to match OptiPath student format
-    const guestStudent = {
+    const registrationNo = existingId || "EXT-" + Math.floor(100000 + Math.random() * 900000);
+    const candidate = {
       isExternal: true,
-      fullName: formData.name || "External Scholar",
-      age: formData.age,
-      registrationNo: "EXT-" + Math.floor(100000 + Math.random() * 900000),
-      program: formData.graduationDegree || "B.Tech / BCA Computer Science",
-      semester: formData.employmentStatus === "Fresher" ? "Graduated (Entry Level)" : "Working Professional",
-      academicProfile: {
-        tenth: formData.marks10,
-        twelfth: formData.marks12,
-        graduation: `${formData.graduationDegree} (${formData.graduationMarks}%)`,
-        postGrad: formData.postGradDegree ? `${formData.postGradDegree} (${formData.postGradMarks}%)` : null
-      },
+      registrationNo,
+      fullName: form.name.trim(),
+      age,
+      profession: form.profession.trim(),
+      experienceYears: years,
+      qualification: form.qualification,
+      targetRole: form.targetRole,
       employment: {
-        status: formData.employmentStatus,
-        experienceYears: formData.experienceYears,
-        currentStack: formData.currentStack
+        status: years > 0 ? "Experienced" : "Fresher",
+        experienceYears: years,
+        currentStack: form.skills.trim(),
       },
-      completedCourses: [
-        "Core Programming & OOP",
-        "Data Structures & Relational Databases",
-        "Operating System Concepts",
-        formData.currentStack || "Web Architecture"
-      ],
-      upcomingCourses: []
     };
 
-    localStorage.setItem("optipath_student", JSON.stringify(guestStudent));
-    router.push(`/gap-analysis?role=${encodeURIComponent(formData.targetRole)}`);
+    localStorage.setItem("optipath_student", JSON.stringify(candidate));
+    router.push(`/gap-analysis?role=${encodeURIComponent(form.targetRole)}`);
   };
 
   return (
@@ -78,207 +108,100 @@ export default function NonSgtOnboardingPage() {
       <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
           <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
-            <ArrowLeft className="w-4 h-4" /> Return to Home
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">
-            Step 2B &bull; Non-SGT Scholar Onboarding
-          </span>
+          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">Non-SGT candidate</span>
         </div>
 
         <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs">
           <div className="space-y-1 mb-8">
-            <h1 className="font-serif text-3xl font-bold text-[#0E1726]">Academic & Career Calibration</h1>
-            <p className="text-xs text-[#526173]">
-              Calibrate your educational milestones and background against real industry role requirements.
-            </p>
+            <h1 className="font-serif text-3xl font-bold">Check how ready you are</h1>
+            <p className="text-xs text-[#526173]">Tell us where you are today and where you want to go. It takes about a minute.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* 1. Basic Details */}
+            {/* About you */}
             <div className="space-y-4">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
-                <User className="w-4 h-4" /> 1. Personal Info
+                <User className="w-4 h-4" /> 1. About you
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Full Name</label>
-                  <input
-                    type="text"
-                    name="name"
-                    required
-                    value={formData.name}
-                    onChange={handleChange}
-                    placeholder="e.g. Rahul Sharma"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
+                  <label className={labelCls} htmlFor="name">Full name</label>
+                  <input id="name" type="text" name="name" required value={form.name} onChange={onChange} placeholder="e.g. Rahul Sharma" className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Age</label>
-                  <input
-                    type="number"
-                    name="age"
-                    required
-                    value={formData.age}
-                    onChange={handleChange}
-                    placeholder="e.g. 22"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
+                  <label className={labelCls} htmlFor="age">Age</label>
+                  <input id="age" type="number" name="age" required min={14} max={80} value={form.age} onChange={onChange} placeholder="e.g. 22" className={inputCls} />
                 </div>
               </div>
             </div>
 
-            {/* 2. Academic Milestones */}
+            {/* Background */}
             <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" /> 2. Academic Milestones
+                <Briefcase className="w-4 h-4" /> 2. Your background
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">10th Grade Score (% or CGPA)</label>
-                  <input
-                    type="text"
-                    name="marks10"
-                    required
-                    value={formData.marks10}
-                    onChange={handleChange}
-                    placeholder="e.g. 88%"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
+                  <label className={labelCls} htmlFor="profession">Current profession</label>
+                  <input id="profession" type="text" name="profession" required value={form.profession} onChange={onChange} placeholder="e.g. Student, Software tester, Sales executive" className={inputCls} />
                 </div>
                 <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">12th Grade Score (% or CGPA)</label>
-                  <input
-                    type="text"
-                    name="marks12"
-                    required
-                    value={formData.marks12}
-                    onChange={handleChange}
-                    placeholder="e.g. 85%"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
+                  <label className={labelCls} htmlFor="experienceYears">Years of experience</label>
+                  <input id="experienceYears" type="number" step="0.5" min={0} max={50} name="experienceYears" required value={form.experienceYears} onChange={onChange} className={inputCls} />
                 </div>
-                <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Graduation Degree & Major</label>
-                  <input
-                    type="text"
-                    name="graduationDegree"
-                    required
-                    value={formData.graduationDegree}
-                    onChange={handleChange}
-                    placeholder="e.g. B.Tech Computer Science / BCA"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Graduation Score (% or CGPA)</label>
-                  <input
-                    type="text"
-                    name="graduationMarks"
-                    required
-                    value={formData.graduationMarks}
-                    onChange={handleChange}
-                    placeholder="e.g. 8.2 CGPA"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Post-Graduation (Optional)</label>
-                  <input
-                    type="text"
-                    name="postGradDegree"
-                    value={formData.postGradDegree}
-                    onChange={handleChange}
-                    placeholder="e.g. MCA / M.Tech"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Post-Grad Score (Optional)</label>
-                  <input
-                    type="text"
-                    name="postGradMarks"
-                    value={formData.postGradMarks}
-                    onChange={handleChange}
-                    placeholder="e.g. 8.5 CGPA"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* 3. Professional Standing */}
-            <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
-                <Briefcase className="w-4 h-4" /> 3. Current Professional Standing
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Status</label>
-                  <select
-                    name="employmentStatus"
-                    value={formData.employmentStatus}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs bg-white focus:outline-none focus:border-[#831843]"
-                  >
-                    <option value="Fresher">Fresher / Final Year Student</option>
-                    <option value="Employed">Currently Working / Employed</option>
+                <div className="sm:col-span-2">
+                  <label className={labelCls} htmlFor="qualification">
+                    <GraduationCap className="w-3.5 h-3.5 inline mr-1" />Highest qualification
+                  </label>
+                  <select id="qualification" name="qualification" required value={form.qualification} onChange={onChange} className={inputCls}>
+                    <option value="" disabled>Select your qualification</option>
+                    {QUALIFICATIONS.map((q) => (
+                      <option key={q.value} value={q.value}>{q.label}</option>
+                    ))}
                   </select>
                 </div>
-                {formData.employmentStatus === "Employed" && (
-                  <div>
-                    <label className="text-xs font-bold text-[#526173] block mb-1">Years of Experience</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      name="experienceYears"
-                      value={formData.experienceYears}
-                      onChange={handleChange}
-                      placeholder="e.g. 1.5"
-                      className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                    />
-                  </div>
-                )}
-                <div className="sm:col-span-2">
-                  <label className="text-xs font-bold text-[#526173] block mb-1">Primary Tech Stack & Tools Known</label>
-                  <input
-                    type="text"
-                    name="currentStack"
-                    value={formData.currentStack}
-                    onChange={handleChange}
-                    placeholder="e.g. C++, Java, React, Python, MySQL"
-                    className="w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843]"
-                  />
-                </div>
               </div>
             </div>
 
-            {/* 4. Goal Selection */}
+            {/* Skills */}
             <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
               <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
-                <Target className="w-4 h-4" /> 4. Target Career Role
+                <Wrench className="w-4 h-4" /> 3. Skills and tools you know
               </h3>
               <div>
-                <label className="text-xs font-bold text-[#526173] block mb-1">Select Desired Role</label>
-                <select
-                  name="targetRole"
-                  value={formData.targetRole}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 rounded-xl border border-[#831843] bg-[#FAF8F5] text-xs font-bold text-[#0E1726] focus:outline-none"
-                >
-                  {POPULAR_ROLES.map((r) => (
-                    <option key={r} value={r}>
-                      {r}
-                    </option>
-                  ))}
-                </select>
+                <label className={labelCls} htmlFor="skills">List them, separated by commas</label>
+                <textarea
+                  id="skills"
+                  name="skills"
+                  rows={3}
+                  value={form.skills}
+                  onChange={onChange}
+                  placeholder="e.g. Python, MySQL, Git, React   |   or   |   Excel, Tally, GST, Digital Marketing"
+                  className={inputCls}
+                />
+                <p className="text-[11px] text-[#64748B] mt-1">Your readiness score is based on these. Leave it empty if you are just starting.</p>
               </div>
             </div>
+
+            {/* Goal */}
+            <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
+                <Target className="w-4 h-4" /> 4. Your goal
+              </h3>
+              <RoleSearch value={form.targetRole} onChange={(r) => set("targetRole", r)} suggested={POPULAR_ROLES} />
+            </div>
+
+            {error && (
+              <p className="text-xs text-rose-700 bg-rose-50 border border-rose-200 rounded-xl p-3" role="alert">{error}</p>
+            )}
 
             <button
               type="submit"
               className="w-full py-4 bg-[#831843] hover:bg-[#701237] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
             >
-              Calibrate & Run 3-Tier Gap Analysis <ArrowRight className="w-4 h-4" />
+              Go ahead <ArrowRight className="w-4 h-4" />
             </button>
           </form>
         </div>
