@@ -103,4 +103,4 @@ matching, course analysis, student record handling, programme recommendation, an
 - [ ] Replace the FAQ and privacy notice in `lib/siteConfig.ts` with official wording.
 - [ ] Have a domain expert review `REQUIREMENTS` in `lib/skillMatch.ts` and the project ideas in `lib/careerResources.ts`.
 - [ ] Complete `data/sgtCurriculum.ts` (BCA, BBA and B.Com Semesters 5 and 6; B.Com Semesters 3 and 4 look incomplete).
-- [ ] Refresh and extend `SALARY_ROWS` from the live source pages.
+- [ ] Refresh `SALARY_ROWS` from the live source pages (all pages captured were dated 2025). Roles still without a row: Data Analyst, QA, Mobile, Data Engineer, Blockchain, Business, Business Analytics.

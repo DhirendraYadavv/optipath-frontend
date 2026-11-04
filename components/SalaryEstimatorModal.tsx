@@ -88,6 +88,7 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
                       experience{result.row.reports ? `, ${result.row.reports} salary reports` : ""}. This is the closest researched title to your profile.
                     </span>
                   </p>
+                  {result.row.aliasNote && <p><b>Note:</b> {result.row.aliasNote}</p>}
                   {result.basis === "bengaluru-reported" && <p>City figure: the source lists a Bengaluru range for this title.</p>}
                   {result.basis === "india-reported" && <p>No city-specific figure for {result.city.name}; the India-wide range is shown.</p>}
                   {result.basis === "tier2-estimate" && (

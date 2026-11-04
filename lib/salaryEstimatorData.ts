@@ -25,6 +25,8 @@ export interface SalaryRow {
   reports?: string;
   /** Range for Bengaluru from the same source, if the page lists it. */
   bengaluru?: { min: number; max: number };
+  /** Shown on screen when a role is benchmarked against a neighbouring title. */
+  aliasNote?: string;
   source: string;
   sourceUrl: string;
   /** Date the source page itself shows ("updated: ..."), or null if the captured text showed none. */
@@ -98,6 +100,92 @@ export const SALARY_ROWS: SalaryRow[] = [
     source: "AmbitionBox",
     sourceUrl: "https://ambitionbox.com/profile/digital-manager-salary",
     sourceDate: null,
+    capturedOn: "2026-11-04",
+  },
+  {
+    // "SDE 1" and generic software roles are benchmarked against this row (project-owner decision).
+    // The source range covers 1 to 5 years, so it is not an entry-level-only figure; Bengaluru: 1 to 5 years.
+    families: ["sde"],
+    sourceTitle: "Software Engineer",
+    min: 2.8,
+    max: 16,
+    experience: "1 to 5 years",
+    reports: "about 5.8 lakh",
+    bengaluru: { min: 3, max: 16 },
+    aliasNote: "Benchmarked against entry-level Software Engineer / Backend Developer compensation bands.",
+    source: "AmbitionBox",
+    sourceUrl: "https://ambitionbox.com/profile/software-engineer-salary",
+    sourceDate: "24 Feb 2025",
+    capturedOn: "2026-11-04",
+  },
+  {
+    // Bengaluru range on the source is for 0 to 5 years.
+    families: ["frontend"],
+    sourceTitle: "Front end Developer",
+    min: 1.2,
+    max: 11.9,
+    experience: "under 1 year to 6 years",
+    reports: "about 50.6k",
+    bengaluru: { min: 1.8, max: 13 },
+    source: "AmbitionBox",
+    sourceUrl: "https://ambitionbox.com/profile/front-end-developer-salary",
+    sourceDate: "5 Mar 2025",
+    capturedOn: "2026-11-04",
+  },
+  {
+    // Bengaluru range on the source is for 0 to 7 years.
+    families: ["fullstack"],
+    sourceTitle: "Full Stack Developer",
+    min: 1.8,
+    max: 15.4,
+    experience: "under 1 year to 7 years",
+    reports: "about 39.7k",
+    bengaluru: { min: 2.1, max: 16.5 },
+    source: "AmbitionBox",
+    sourceUrl: "https://ambitionbox.com/profile/full-stack-developer-salary",
+    sourceDate: "5 Mar 2025",
+    capturedOn: "2026-11-04",
+  },
+  {
+    // The "Cyber Security Analyst" page could not be read in this session, so the closest readable title
+    // is used. Bengaluru range on the source is for 1 to 6 years.
+    families: ["security"],
+    sourceTitle: "Information Security Analyst",
+    min: 3,
+    max: 14.8,
+    experience: "1 to 7 years",
+    reports: "about 7.1k",
+    bengaluru: { min: 3, max: 14.5 },
+    source: "AmbitionBox",
+    sourceUrl: "https://www.ambitionbox.com/profile/information-security-analyst-salary",
+    sourceDate: "15 Aug 2025",
+    capturedOn: "2026-11-04",
+  },
+  {
+    families: ["hr"],
+    sourceTitle: "HR Executive",
+    min: 1.7,
+    max: 5.7,
+    experience: "1 to 7 years",
+    reports: "about 1.2 lakh",
+    bengaluru: { min: 2, max: 6 },
+    source: "AmbitionBox",
+    sourceUrl: "https://ambitionbox.com/profile/hr-executive-salary",
+    sourceDate: "1 Jul 2025",
+    capturedOn: "2026-11-04",
+  },
+  {
+    // Used for the whole operations family; it is the supply-chain title, not a general "Operations" title.
+    families: ["operations"],
+    sourceTitle: "Supply Chain Executive",
+    min: 2,
+    max: 8,
+    experience: "1 to 10 years",
+    reports: "about 7.3k",
+    bengaluru: { min: 2.2, max: 8 },
+    source: "AmbitionBox",
+    sourceUrl: "https://ambitionbox.com/profile/supply-chain-executive-salary",
+    sourceDate: "10 Mar 2025",
     capturedOn: "2026-11-04",
   },
 ];
