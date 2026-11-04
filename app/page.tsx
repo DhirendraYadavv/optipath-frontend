@@ -6,7 +6,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import SalaryEstimatorModal from "@/components/SalaryEstimatorModal";
-import { FAQS, PROGRAMS, SGT_ONLINE_APPLY, SGT_ONLINE_HOME, UGC_URL } from "@/lib/siteConfig";
+import { FAQS, PRIVACY_NOTICE, PROGRAMS, SGT_ONLINE_APPLY, SGT_ONLINE_HOME, UGC_URL } from "@/lib/siteConfig";
 
 export default function Home() {
   const { user, ready, openSignIn, signOut } = useAuth();
@@ -214,6 +214,9 @@ export default function Home() {
           <p>&copy; 2026 SGT University &bull; Centre for Distance &amp; Online Education &bull; Budhera, Gurugram, Haryana</p>
           <p className="text-[11px] text-[#64748B]">NAAC A+ Accredited Institution &bull; UGC-DEB Approved Online Programs</p>
         </div>
+        <p className="max-w-7xl mx-auto px-6 mt-4 text-[11px] text-[#64748B] leading-relaxed">
+          <b className="text-[#526173]">Privacy:</b> {PRIVACY_NOTICE}
+        </p>
       </footer>
 
       {/* ---------------------- "CHECK YOURSELF" FORK MODAL ---------------------- */}

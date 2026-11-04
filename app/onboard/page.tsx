@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, ArrowRight, Briefcase, GraduationCap, Target, User, Wrench } from "lucide-react";
 import RoleSearch from "@/components/RoleSearch";
 import { QUALIFICATIONS, Qualification } from "@/lib/programRecommend";
+import { isExternalRecord, saveStudent, useStoredStudent } from "@/lib/studentStore";
 
 const POPULAR_ROLES = [
   "Software Development Engineer 1 (SDE 1)",
@@ -21,41 +22,42 @@ const POPULAR_ROLES = [
 const inputCls = "w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843] bg-white";
 const labelCls = "text-xs font-bold text-[#526173] block mb-1";
 
-export default function NonSgtOnboardingPage() {
-  const router = useRouter();
-  const [existingId, setExistingId] = useState<string>("");
-  const [error, setError] = useState("");
-  const [form, setForm] = useState({
-    name: "",
-    age: "",
-    profession: "",
-    experienceYears: "0",
-    qualification: "" as Qualification | "",
-    skills: "",
-    targetRole: "",
-  });
+interface FormState {
+  name: string;
+  age: string;
+  profession: string;
+  experienceYears: string;
+  qualification: Qualification | "";
+  skills: string;
+  targetRole: string;
+}
 
-  // Pre-fill when an external candidate comes back to edit their answers.
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("optipath_student");
-      if (!saved) return;
-      const s = JSON.parse(saved);
-      if (!(s?.isExternal || String(s?.registrationNo || "").startsWith("EXT-"))) return;
-      setExistingId(s.registrationNo || "");
-      setForm({
-        name: s.fullName || "",
-        age: s.age ? String(s.age) : "",
-        profession: s.profession || "",
-        experienceYears: s.experienceYears != null ? String(s.experienceYears) : "0",
-        qualification: s.qualification || "",
-        skills: s.employment?.currentStack || "",
-        targetRole: s.targetRole || "",
-      });
-    } catch {
-      // ignore unreadable saved data
-    }
-  }, []);
+function initialForm(existing: Record<string, unknown> | null): FormState {
+  const emp = (existing?.employment ?? {}) as Record<string, unknown>;
+  return {
+    name: typeof existing?.fullName === "string" ? existing.fullName : "",
+    age: existing?.age != null ? String(existing.age) : "",
+    profession: typeof existing?.profession === "string" ? existing.profession : "",
+    experienceYears: existing?.experienceYears != null ? String(existing.experienceYears) : "0",
+    qualification: typeof existing?.qualification === "string" ? (existing.qualification as Qualification) : "",
+    skills: typeof emp.currentStack === "string" ? emp.currentStack : "",
+    targetRole: typeof existing?.targetRole === "string" ? existing.targetRole : "",
+  };
+}
+
+export default function NonSgtOnboardingPage() {
+  // Pre-fill when an external candidate comes back to edit their answers. The key remounts the
+  // form once localStorage has been read, so no state needs to be set from an effect.
+  const { ready, record } = useStoredStudent();
+  const existing = ready && isExternalRecord(record) ? record : null;
+  return <OnboardingForm key={ready ? "ready" : "init"} existing={existing} />;
+}
+
+function OnboardingForm({ existing }: { existing: Record<string, unknown> | null }) {
+  const router = useRouter();
+  const existingId = typeof existing?.registrationNo === "string" ? existing.registrationNo : "";
+  const [error, setError] = useState("");
+  const [form, setForm] = useState<FormState>(() => initialForm(existing));
 
   const set = (name: string, value: string) => setForm((f) => ({ ...f, [name]: value }));
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => set(e.target.name, e.target.value);
@@ -99,7 +101,7 @@ export default function NonSgtOnboardingPage() {
       },
     };
 
-    localStorage.setItem("optipath_student", JSON.stringify(candidate));
+    saveStudent(candidate);
     router.push(`/gap-analysis?role=${encodeURIComponent(form.targetRole)}`);
   };
 

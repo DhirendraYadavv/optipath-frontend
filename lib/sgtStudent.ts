@@ -40,8 +40,9 @@ function toStringList(v: unknown): string[] {
 }
 
 /** Validates the backend `student` object. Returns null if the essentials are missing. */
-export function normalizeBackendStudent(raw: any, goal: string): StoredStudent | null {
-  if (!raw || typeof raw !== "object") return null;
+export function normalizeBackendStudent(input: unknown, goal: string): StoredStudent | null {
+  if (!input || typeof input !== "object") return null;
+  const raw = input as Record<string, unknown>;
   const registrationNo = typeof raw.registrationNo === "string" ? raw.registrationNo.trim().toUpperCase() : "";
   const fullName = typeof raw.fullName === "string" ? raw.fullName.trim() : "";
   const sem = Number(raw.currentSemester);

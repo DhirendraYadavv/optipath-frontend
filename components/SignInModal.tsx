@@ -44,8 +44,8 @@ export default function SignInModal() {
                 }
                 try {
                   await signInWithCredential(res.credential);
-                } catch (e: any) {
-                  setError(e?.message || "Sign-in failed. Please try again.");
+                } catch (e: unknown) {
+                  setError(e instanceof Error && e.message ? e.message : "Sign-in failed. Please try again.");
                 }
               }}
               onError={() => setError("Google sign-in was cancelled or failed. Please try again.")}

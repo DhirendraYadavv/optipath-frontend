@@ -6,7 +6,8 @@
     "dev": "next dev --webpack",
     "build": "next build --webpack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "test": "tsx --test tests/skillMatch.test.ts tests/sgtStudent.test.ts tests/programRecommend.test.ts tests/salary.test.ts"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.5",
@@ -25,6 +26,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.3.4",
     "tailwindcss": "^4",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }

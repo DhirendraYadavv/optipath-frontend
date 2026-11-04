@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, ArrowLeft, CheckCircle2, Clock, Hourglass, Info, ListChecks, LogOut, Target } from "lucide-react";
@@ -8,6 +8,7 @@ import RoleSearch from "@/components/RoleSearch";
 import CareerActions from "@/components/CareerActions";
 import { analyzeAcademicGap, goalSkillsInCourse, AcademicStatus } from "@/lib/skillMatch";
 import { StoredStudent, buildAcademicView } from "@/lib/sgtStudent";
+import { clearStudent, isExternalRecord, saveStudent, useStoredStudent } from "@/lib/studentStore";
 
 const STATUS_STYLE: Record<AcademicStatus, { label: string; chip: string; box: string }> = {
   completed: { label: "Completed", chip: "bg-emerald-100 text-emerald-900", box: "bg-emerald-50/70 border-emerald-200" },
@@ -36,29 +37,21 @@ function CourseRow({ course, role, tone }: { course: string; role: string; tone:
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [student, setStudent] = useState<StoredStudent | null>(null);
-  const [ready, setReady] = useState(false);
+  const { ready, record } = useStoredStudent();
+  const external = isExternalRecord(record);
+  const student = !external && record ? (record as unknown as StoredStudent) : null;
 
   useEffect(() => {
-    const saved = localStorage.getItem("optipath_student");
-    if (!saved) {
+    if (!ready) return;
+    if (!record) {
       router.replace("/login");
       return;
     }
-    try {
-      const parsed = JSON.parse(saved);
-      if (parsed?.isExternal || String(parsed?.registrationNo || "").startsWith("EXT-")) {
-        const role = parsed.targetRole || parsed.goal || "";
-        router.replace(role ? `/gap-analysis?role=${encodeURIComponent(role)}` : "/onboard");
-        return;
-      }
-      setStudent(parsed as StoredStudent);
-      setReady(true);
-    } catch {
-      localStorage.removeItem("optipath_student");
-      router.replace("/login");
+    if (external) {
+      const role = String(record.targetRole || record.goal || "");
+      router.replace(role ? `/gap-analysis?role=${encodeURIComponent(role)}` : "/onboard");
     }
-  }, [router]);
+  }, [ready, record, external, router]);
 
   const view = useMemo(() => (student ? buildAcademicView(student) : null), [student]);
 
@@ -73,14 +66,11 @@ export default function DashboardPage() {
 
   const setGoal = (goal: string) => {
     if (!student) return;
-    const next = { ...student, goal };
-    setStudent(next);
-    localStorage.setItem("optipath_student", JSON.stringify(next));
+    saveStudent({ ...student, goal });
   };
 
   const signOut = () => {
-    localStorage.removeItem("optipath_student");
-    localStorage.removeItem("optipath_token");
+    clearStudent();
     router.push("/");
   };
 

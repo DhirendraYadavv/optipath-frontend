@@ -10,6 +10,7 @@ import { computeSkillMatch, detectRoleFamily } from "@/lib/skillMatch";
 import { Qualification, evaluatePrograms, qualificationLabel } from "@/lib/programRecommend";
 import { projectIdeasFor } from "@/lib/careerResources";
 import { PROGRAMS, SGT_ONLINE_APPLY } from "@/lib/siteConfig";
+import { isExternalRecord, useStoredStudent } from "@/lib/studentStore";
 
 interface ExternalCandidate {
   fullName: string;
@@ -26,31 +27,19 @@ function GapAnalysisContent() {
   const searchParams = useSearchParams();
   const { user, ready: authReady, openSignIn } = useAuth();
 
-  const [candidate, setCandidate] = useState<ExternalCandidate | null>(null);
-  const [loaded, setLoaded] = useState(false);
   const [wantsDetails, setWantsDetails] = useState(false);
+  const { ready: storeReady, record } = useStoredStudent();
+  const external = isExternalRecord(record);
+  const candidate = external && record ? (record as unknown as ExternalCandidate) : null;
+  const loaded = storeReady && candidate !== null;
 
   const role = searchParams.get("role") || candidate?.targetRole || "";
 
   useEffect(() => {
-    const saved = localStorage.getItem("optipath_student");
-    if (!saved) {
-      router.replace("/onboard");
-      return;
-    }
-    try {
-      const parsed = JSON.parse(saved);
-      const external = Boolean(parsed?.isExternal || String(parsed?.registrationNo || "").startsWith("EXT-"));
-      if (!external) {
-        router.replace("/dashboard");
-        return;
-      }
-      setCandidate(parsed);
-      setLoaded(true);
-    } catch {
-      router.replace("/onboard");
-    }
-  }, [router]);
+    if (!storeReady) return;
+    if (!record) router.replace("/onboard");
+    else if (!external) router.replace("/dashboard");
+  }, [storeReady, record, external, router]);
 
   const analysis = useMemo(() => {
     if (!candidate || !role) return null;

@@ -2,10 +2,17 @@
 // Single place for landing-page facts. Edit here, not in the page.
 //
 // REVIEW BEFORE GOING LIVE:
-//  - Program guide URLs were taken from the existing footer in app/page.tsx. The B.Com URL was not
-//    in the project, so it points to the SGT Online home page until you provide the real one.
+//  - Program guide URLs were supplied by the project owner (https://sgtonline.ac.in/<program>), who
+//    confirmed sgtonline.ac.in as the official domain. Click-test all five before going live.
 //  - Program focus lines come from the project owner's brief, not from the SGT Online website.
 //  - FAQ answers are deliberately conservative. Replace with official wording where you have it.
+
+/** Backend base URL. Set NEXT_PUBLIC_API_URL in .env.local / hosting settings; the fallback is for local development only. */
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+
+/** Shown in the footer. REVIEW with your university's data-protection owner before going live. */
+export const PRIVACY_NOTICE =
+  "Details you enter as a non-SGT candidate stay in your browser on this device. SGT student logins are checked against the university record service. Google sign-in shares your name, email and photo with this site.";
 
 export const SGT_ONLINE_HOME = "https://sgtonline.ac.in/";
 export const SGT_ONLINE_APPLY = "https://sgtonline.ac.in/apply/";
@@ -25,35 +32,35 @@ export const PROGRAMS: Program[] = [
     name: "Online BCA",
     fullName: "Bachelor of Computer Applications",
     focus: "Software Foundations & Web Engineering",
-    guideUrl: "https://sgtonline.ac.in/programs/bca/",
+    guideUrl: "https://sgtonline.ac.in/bca",
   },
   {
     key: "mca",
     name: "Online MCA",
     fullName: "Master of Computer Applications",
     focus: "Advanced Cloud Computing, AI & Full Stack",
-    guideUrl: "https://sgtonline.ac.in/programs/mca/",
+    guideUrl: "https://sgtonline.ac.in/mca",
   },
   {
     key: "bba",
     name: "Online BBA",
     fullName: "Bachelor of Business Administration",
     focus: "Business Operations & Digital Strategy",
-    guideUrl: "https://sgtonline.ac.in/programs/bba/",
+    guideUrl: "https://sgtonline.ac.in/bba",
   },
   {
     key: "mba",
     name: "Online MBA",
     fullName: "Master of Business Administration",
     focus: "Tech Management, Marketing & Finance",
-    guideUrl: "https://sgtonline.ac.in/programs/mba/",
+    guideUrl: "https://sgtonline.ac.in/mba",
   },
   {
     key: "bcom",
     name: "Online B.Com (Hons)",
     fullName: "Bachelor of Commerce (Honours)",
     focus: "Financial Markets & Accounting",
-    guideUrl: SGT_ONLINE_HOME, // TODO: replace with the real B.Com program-guide URL
+    guideUrl: "https://sgtonline.ac.in/bcom",
   },
 ];
 

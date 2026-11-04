@@ -7,8 +7,8 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight, AlertCircle, Lock, Target, User } from "lucide-react";
 import RoleSearch from "@/components/RoleSearch";
 import { TEST_REG_NO, buildDevTestStudent, normalizeBackendStudent } from "@/lib/sgtStudent";
+import { API_URL } from "@/lib/siteConfig";
 
-const API_URL = "http://localhost:8000";
 const IS_DEV = process.env.NODE_ENV !== "production";
 
 export default function LoginPage() {
@@ -43,9 +43,10 @@ export default function LoginPage() {
         body: JSON.stringify({ registrationNo: cleanReg, dob: dob.trim() }),
       });
 
-      let data: any = null;
+      let data: Record<string, unknown> | null = null;
       try {
-        data = await res.json();
+        const parsed: unknown = await res.json();
+        data = parsed && typeof parsed === "object" ? (parsed as Record<string, unknown>) : null;
       } catch {
         // non-JSON response
       }

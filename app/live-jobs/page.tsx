@@ -1,69 +1,51 @@
 "use client";
 
-import AuthFeatureGate from "@/components/AuthFeatureGate";
-import React, { useState, useEffect, Suspense } from "react";
+import React, { Suspense } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ArrowLeft, Clock } from "lucide-react";
-import LiveJobFeed from "@/components/LiveJobFeed";
+import { ArrowLeft } from "lucide-react";
+import CareerActions from "@/components/CareerActions";
+import { useStoredStudent } from "@/lib/studentStore";
 
 function LiveJobsContent() {
   const searchParams = useSearchParams();
-  const role = searchParams.get("role") || "Software Development Engineer 1 (SDE 1)";
+  const { ready, record } = useStoredStudent();
 
-  const [studentSkills, setStudentSkills] = useState<string[]>([
-    "Python", "DSA", "DBMS / SQL", "Git", "Object-Oriented Programming"
-  ]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem("optipath_student");
-    if (saved) {
-      try {
-        const parsed = JSON.parse(saved);
-        if (parsed.completedCourses && parsed.completedCourses.length > 0) {
-          setStudentSkills(["Python", "DSA", "DBMS / SQL", "Git", "C++", "Linux Basics"]);
-        }
-      } catch {}
-    }
-  }, []);
+  const fromRecord = record ? String(record.goal || record.targetRole || "") : "";
+  const role = searchParams.get("role") || fromRecord;
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
-      <div className="max-w-5xl mx-auto space-y-8">
+      <div className="max-w-3xl mx-auto space-y-8">
         <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
-          <Link
-            href={`/roadmap?role=${encodeURIComponent(role)}`}
-            className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back to Learning Roadmap
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
+            <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">
-            Page 6 &bull; Live 24-Hour Job Pulse
-          </span>
+          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">Openings in the last 24 hours</span>
         </div>
 
-        {/* Real-Time Market Header */}
-        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#831843]">
-              Target Role Hiring Feed
-            </span>
-            <h1 className="font-serif text-2xl font-bold text-[#0E1726]">{role}</h1>
-            <p className="text-xs text-[#526173]">
-              Matched against verified academic skills:{" "}
-              <span className="font-mono text-[#0E1726]">{studentSkills.slice(0, 4).join(", ")}...</span>
-            </p>
+        {!ready ? (
+          <p className="text-xs text-[#64748B] text-center">Loading...</p>
+        ) : role ? (
+          <>
+            <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#831843]">Your goal</span>
+              <h1 className="font-serif text-2xl font-bold">{role}</h1>
+              <p className="text-xs text-[#526173]">
+                The button below opens a LinkedIn search for this role, limited to jobs posted in the last 24 hours. Listings come live from LinkedIn.
+              </p>
+            </div>
+            <CareerActions role={role} showProjects={false} />
+          </>
+        ) : (
+          <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 text-center space-y-3">
+            <p className="text-sm text-[#526173]">Choose your goal first so we can search for the right openings.</p>
+            <div className="flex justify-center gap-3">
+              <Link href="/login" className="px-5 py-2.5 bg-[#831843] text-white text-xs font-bold rounded-xl">I am an SGT student</Link>
+              <Link href="/onboard" className="px-5 py-2.5 border border-[#831843] text-[#831843] text-xs font-bold rounded-xl">I am not an SGT student</Link>
+            </div>
           </div>
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-full text-xs font-bold shrink-0 self-start sm:self-auto">
-            <Clock className="w-3.5 h-3.5 text-emerald-600" />
-            <span>Past 24h Verified (f_TPR=r86400)</span>
-          </div>
-        </div>
-
-        {/* LiveJobFeed Component */}
-        <AuthFeatureGate user={typeof student !== "undefined" ? student : (typeof window !== "undefined" && localStorage.getItem("optipath_student"))} onUnlock={() => window.location.href = "/login"} title="Unlock 24-Hour Live Job Radar" description="Sign in to view real-time scraped job openings and direct 24-hour apply links across LinkedIn, Naukri, and Wellfound.">
-        <LiveJobFeed role={role} skills={studentSkills} />
-      </AuthFeatureGate>
+        )}
       </div>
     </div>
   );
@@ -71,7 +53,7 @@ function LiveJobsContent() {
 
 export default function LiveJobsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading Job Radar...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading...</div>}>
       <LiveJobsContent />
     </Suspense>
   );

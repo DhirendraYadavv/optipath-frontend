@@ -1,7 +1,8 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import React, { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from "react";
 import { googleLogout } from "@react-oauth/google";
+import { API_URL } from "@/lib/siteConfig";
 
 export interface AuthUser {
   name: string;
@@ -13,7 +14,7 @@ export interface AuthUser {
 interface AuthContextValue {
   /** The signed-in Google user, or null. */
   user: AuthUser | null;
-  /** False until localStorage has been read (avoids a signed-out flash on reload). */
+  /** False during server rendering and the first client render (avoids a signed-out flash on reload). */
   ready: boolean;
   signInOpen: boolean;
   signInReason: string;
@@ -27,11 +28,47 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const USER_KEY = "optipath_user";
 const TOKEN_KEY = "optipath_token";
-const API_URL = "http://localhost:8000";
 
 class RejectedSignIn extends Error {}
 
-function decodeJwtPayload(token: string): any {
+// ---- tiny external store over localStorage so React can read it without setState-in-effect ----
+const listeners = new Set<() => void>();
+
+function subscribe(callback: () => void): () => void {
+  listeners.add(callback);
+  window.addEventListener("storage", callback);
+  return () => {
+    listeners.delete(callback);
+    window.removeEventListener("storage", callback);
+  };
+}
+
+function notify(): void {
+  listeners.forEach((l) => l());
+}
+
+function readRawUser(): string | null {
+  try {
+    return localStorage.getItem(USER_KEY);
+  } catch {
+    return null;
+  }
+}
+
+const subscribeNever = () => () => {};
+
+// ---- helpers ----
+interface JwtPayload {
+  name?: string;
+  given_name?: string;
+  family_name?: string;
+  email?: string;
+  picture?: string;
+  aud?: string;
+  exp?: number;
+}
+
+function decodeJwtPayload(token: string): JwtPayload {
   const part = token.split(".")[1];
   if (!part) throw new Error("Malformed sign-in token.");
   const b64 = part.replace(/-/g, "+").replace(/_/g, "/");
@@ -41,39 +78,46 @@ function decodeJwtPayload(token: string): any {
       .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
       .join("")
   );
-  return JSON.parse(json);
+  return JSON.parse(json) as JwtPayload;
 }
 
-function normalizeUser(raw: any): AuthUser | null {
+function str(v: unknown): string {
+  return typeof v === "string" ? v : "";
+}
+
+function normalizeUser(raw: unknown): AuthUser | null {
   if (!raw || typeof raw !== "object") return null;
-  const name: string =
-    raw.name || raw.fullName || [raw.firstName || raw.given_name, raw.lastName || raw.family_name].filter(Boolean).join(" ") || "";
-  const email: string = raw.email || "";
+  const r = raw as Record<string, unknown>;
+  const first = str(r.firstName) || str(r.given_name);
+  const last = str(r.lastName) || str(r.family_name);
+  const name = str(r.name) || str(r.fullName) || [first, last].filter(Boolean).join(" ");
+  const email = str(r.email);
   if (!name && !email) return null;
   const display = name || email;
   return {
     name: display,
-    firstName: raw.firstName || raw.given_name || display.split(" ")[0],
+    firstName: first || display.split(" ")[0],
     email,
-    picture: raw.picture || undefined,
+    picture: str(r.picture) || undefined,
   };
 }
 
+function parseStoredUser(raw: string | null): AuthUser | null {
+  if (!raw) return null;
+  try {
+    return normalizeUser(JSON.parse(raw));
+  } catch {
+    return null;
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [ready, setReady] = useState(false);
+  const rawUser = useSyncExternalStore(subscribe, readRawUser, () => null);
+  const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
+  const user = useMemo(() => parseStoredUser(rawUser), [rawUser]);
+
   const [signInOpen, setSignInOpen] = useState(false);
   const [signInReason, setSignInReason] = useState("");
-
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem(USER_KEY);
-      if (saved) setUser(normalizeUser(JSON.parse(saved)));
-    } catch {
-      // corrupted value: treat as signed out
-    }
-    setReady(true);
-  }, []);
 
   const openSignIn = useCallback((reason?: string) => {
     setSignInReason(reason || "");
@@ -108,16 +152,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
       clearTimeout(timer);
       if (res.ok) {
-        const data = await res.json();
-        if (data.access_token) localStorage.setItem(TOKEN_KEY, data.access_token);
-        const fromServer = normalizeUser(data.user);
+        const data: unknown = await res.json();
+        const d = (data && typeof data === "object" ? data : {}) as Record<string, unknown>;
+        if (typeof d.access_token === "string") localStorage.setItem(TOKEN_KEY, d.access_token);
+        const fromServer = normalizeUser(d.user);
         if (fromServer) nextUser = { ...nextUser, ...fromServer, picture: fromServer.picture || nextUser.picture };
       } else if (res.status >= 400 && res.status < 500) {
         let detail = "Sign-in was rejected by the server.";
         try {
-          const err = await res.json();
-          if (err?.detail && typeof err.detail === "string") detail = err.detail;
-        } catch {}
+          const err: unknown = await res.json();
+          const e = (err && typeof err === "object" ? err : {}) as Record<string, unknown>;
+          if (typeof e.detail === "string") detail = e.detail;
+        } catch {
+          // keep the default message
+        }
         throw new RejectedSignIn(detail);
       }
       // 5xx: server problem, keep the Google identity
@@ -127,17 +175,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     localStorage.setItem(USER_KEY, JSON.stringify(nextUser));
-    setUser(nextUser);
+    notify();
     setSignInOpen(false);
   }, []);
 
   const signOut = useCallback(() => {
     try {
       googleLogout();
-    } catch {}
+    } catch {
+      // ignore
+    }
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(TOKEN_KEY);
-    setUser(null);
+    notify();
   }, []);
 
   const value = useMemo<AuthContextValue>(
