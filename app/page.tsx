@@ -6,6 +6,7 @@ import Link from "next/link";
 import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap, Upload } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import SalaryEstimatorModal from "@/components/SalaryEstimatorModal";
+import TalentGateway from "@/components/TalentGateway";
 import TalentPoolUploadModal from "@/components/TalentPoolUploadModal";
 import { FAQS, PRIVACY_NOTICE, PROGRAMS, SGT_ONLINE_APPLY, SGT_ONLINE_HOME, UGC_URL } from "@/lib/siteConfig";
 
@@ -30,7 +31,7 @@ export default function Home() {
             <a href="#programs" className="hover:text-[#831843] transition">Programs</a>
             <a href="#how-it-works" className="hover:text-[#831843] transition">How it works</a>
             <a href="#faq" className="hover:text-[#831843] transition">FAQ</a>
-            <Link href="/portal" className="hover:text-[#831843] transition">Talent Portal</Link>
+            <a href="#talent-gateway" className="hover:text-[#831843] transition">Talent Gateway</a>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -102,6 +103,9 @@ export default function Home() {
             </button>
           </div>
         </section>
+
+        {/* ------------------- TALENT & CAREER GATEWAY (CENTERPIECE) ------------------- */}
+        <TalentGateway />
 
         {/* --------------------------- HOW IT WORKS --------------------------- */}
         <section id="how-it-works" className="max-w-5xl mx-auto px-6 py-12 scroll-mt-24">
