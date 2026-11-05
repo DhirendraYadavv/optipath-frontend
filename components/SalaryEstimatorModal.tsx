@@ -5,14 +5,6 @@ import { ExternalLink, Info, X } from "lucide-react";
 import RoleSearch from "@/components/RoleSearch";
 import { CITIES, TIER2_FACTOR, estimateSalary } from "@/lib/salaryEstimatorData";
 
-const SUGGESTED_ROLES = [
-  "Backend Developer (Python/FastAPI/Django)",
-  "Data Scientist & AI Engineer",
-  "Cloud & DevOps Engineer (Docker/K8s/AWS)",
-  "Financial Analyst Associate",
-  "Digital Marketing Strategist",
-];
-
 const fmt = (n: number) => `₹${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}`;
 
 export default function SalaryEstimatorModal({ onClose }: { onClose: () => void }) {
@@ -37,7 +29,7 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
         <div className="my-4 space-y-4">
           <div>
             <label className="text-xs font-bold text-[#64748B] block mb-1">Job profile</label>
-            <RoleSearch value={role} onChange={setRole} suggested={SUGGESTED_ROLES} />
+            <RoleSearch value={role} onChange={setRole} />
           </div>
 
           <div>
@@ -61,14 +53,14 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9]">
                 <div>
                   <span className="text-[10px] uppercase font-bold text-[#64748B]">
-                    {result.basis === "tier2-estimate" ? "Estimated range (LPA)" : "Reported range (LPA)"}
+                    Entry-level estimate, 0 to 3 years (LPA)
                   </span>
                   {result.range ? (
                     <span className="font-serif text-2xl font-bold text-[#831843] block mt-0.5">
                       {fmt(result.range.min)} to {fmt(result.range.max)}
                     </span>
                   ) : (
-                    <span className="text-sm font-semibold text-[#526173] block mt-1">No verified data for this role yet</span>
+                    <span className="text-sm font-semibold text-[#526173] block mt-1">No entry-level estimate for this role yet</span>
                   )}
                 </div>
                 <div>
@@ -79,29 +71,30 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
                 </div>
               </div>
 
-              {result.row && result.range && (
+              {result.range && result.band && (
                 <div className="text-[11px] text-[#526173] leading-relaxed bg-white border border-[#EAE4D9] rounded-xl p-3 space-y-1.5">
                   <p className="flex items-start gap-1.5">
                     <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#831843]" />
                     <span>
-                      Based on the title <b>&ldquo;{result.row.sourceTitle}&rdquo;</b> ({result.row.source}), covering {result.row.experience} of
-                      experience{result.row.reports ? `, ${result.row.reports} salary reports` : ""}. This is the closest researched title to your profile.
+                      <b>OptiPath estimate</b> for {result.band.experience} of experience. It is not a published statistic.
                     </span>
                   </p>
-                  {result.row.aliasNote && <p><b>Note:</b> {result.row.aliasNote}</p>}
-                  {result.basis === "bengaluru-reported" && <p>City figure: the source lists a Bengaluru range for this title.</p>}
-                  {result.basis === "india-reported" && <p>No city-specific figure for {result.city.name}; the India-wide range is shown.</p>}
-                  {result.basis === "tier2-estimate" && (
+                  {result.row?.aliasNote && <p><b>Note:</b> {result.row.aliasNote}</p>}
+                  {result.basis === "entry-band-tier2" && (
                     <p>
-                      Estimated regional adjustment factor ({TIER2_FACTOR}x of the Tier-1 baseline). This is an assumption, not a measured figure for {result.city.name}.
+                      Estimated regional adjustment factor ({TIER2_FACTOR}x of the Tier-1 band). This is an assumption, not a measured figure for {result.city.name}.
                     </p>
                   )}
-                  <p>
-                    Source page date: {result.row.sourceDate ?? "not shown in the captured page"} &bull; captured {result.row.capturedOn} &bull; The source does not publish a median.
-                  </p>
-                  <a href={result.row.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-[#831843] hover:underline">
-                    Open source page <ExternalLink className="w-3 h-3" />
-                  </a>
+                  {result.basis === "entry-band" && <p>The same band is shown for every Tier-1 city; we have no city-specific figure.</p>}
+                  {result.row && (
+                    <p>
+                      For reference, {result.row.source} publishes {fmt(result.row.min)} to {fmt(result.row.max)} LPA for &ldquo;{result.row.sourceTitle}&rdquo; across{" "}
+                      {result.row.experience} of experience (page date: {result.row.sourceDate ?? "not shown"}, captured {result.row.capturedOn}).{" "}
+                      <a href={result.row.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-[#831843] hover:underline">
+                        Open source page <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </p>
+                  )}
                 </div>
               )}
 

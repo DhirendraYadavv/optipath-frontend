@@ -8,8 +8,12 @@
 //  - Ranges are what AmbitionBox publishes for that job title across all cities and a stated mix of
 //    experience levels. AmbitionBox does not publish a median on these pages, so none is shown.
 //  - The page snapshots we captured were dated March 2025 or showed no date, so they are NOT "Q1 2026".
+//  - SALARY_ROWS are all-experience published ranges and are shown only as a REFERENCE. The headline figure the
+//    estimator shows is the entry-level band in ENTRY_BANDS below, which is a PROJECT-OWNER ESTIMATE, not a
+//    published statistic. A role with no entry band shows no headline figure.
 
 import { RoleFamily, detectRoleFamily } from "@/lib/skillMatch";
+import { GOAL_ROLE_TITLES } from "@/data/goalRoles";
 
 export interface SalaryRow {
   /** Role families this row is the closest researched title for. */
@@ -191,6 +195,30 @@ export const SALARY_ROWS: SalaryRow[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Entry-level bands (0 to 3 years) - PROJECT-OWNER ESTIMATES
+// ---------------------------------------------------------------------------
+export interface EntryBand {
+  /** Exact goal-role title from data/goalRoles.ts. */
+  title: string;
+  min: number;
+  max: number;
+  experience: string;
+}
+
+/**
+ * Set by the project owner on 2026-11-05 as realistic entry-to-mid bands. They are NOT copied from a published
+ * source: the published ranges we could read for the same titles are far wider (see SALARY_ROWS). Shown on
+ * screen as "OptiPath estimate". To add a role, add a line here; do not guess.
+ */
+export const ENTRY_BANDS: EntryBand[] = [
+  { title: "Software Engineer / SDE 1", min: 5.5, max: 7.2, experience: "0 to 3 years" },
+  { title: "Backend Developer (Python / Java / Node.js)", min: 5.5, max: 7.2, experience: "0 to 3 years" },
+  { title: "Data Analyst", min: 4.0, max: 5.5, experience: "0 to 3 years" },
+  { title: "Financial Analyst", min: 3.8, max: 5.0, experience: "0 to 3 years" },
+  { title: "Human Resources (HR) Generalist / Talent Acquisition", min: 3.5, max: 4.8, experience: "0 to 3 years" },
+];
+
+// ---------------------------------------------------------------------------
 // Cities
 // ---------------------------------------------------------------------------
 export type CityTier = "tier1" | "tier2";
@@ -249,12 +277,15 @@ export interface SalaryEstimate {
   family: RoleFamily;
   city: City;
   degree: string | null;
+  /** Closest published all-experience row, for reference only. */
   row: SalaryRow | null;
-  /** Range to display, in LPA. Null when there is no sourced row for this role family. */
+  band: EntryBand | null;
+  /** Headline range in LPA. Null when the role has no entry band. */
   range: { min: number; max: number } | null;
-  /** What the displayed range is based on. */
-  basis: "bengaluru-reported" | "india-reported" | "tier2-estimate" | "none";
+  basis: "entry-band" | "entry-band-tier2" | "none";
   factorApplied: number | null;
+  /** True when the role is one of the SGT goal roles. */
+  isGoalRole: boolean;
 }
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
@@ -263,25 +294,20 @@ export function estimateSalary(role: string, cityName: string): SalaryEstimate {
   const family = detectRoleFamily(role);
   const city = CITIES.find((c) => c.name === cityName) ?? CITIES[CITIES.length - 1];
   const row = SALARY_ROWS.find((r) => r.families.includes(family)) ?? null;
+  const band = ENTRY_BANDS.find((b) => b.title === role) ?? null;
   const degree = typicalDegree(family);
+  const isGoalRole = GOAL_ROLE_TITLES.includes(role);
+  const base = { family, city, degree, row, band, isGoalRole };
 
-  if (!row) return { family, city, degree, row: null, range: null, basis: "none", factorApplied: null };
+  if (!band) return { ...base, range: null, basis: "none", factorApplied: null };
 
   if (city.tier === "tier2") {
     return {
-      family,
-      city,
-      degree,
-      row,
-      range: { min: round1(row.min * TIER2_FACTOR), max: round1(row.max * TIER2_FACTOR) },
-      basis: "tier2-estimate",
+      ...base,
+      range: { min: round1(band.min * TIER2_FACTOR), max: round1(band.max * TIER2_FACTOR) },
+      basis: "entry-band-tier2",
       factorApplied: TIER2_FACTOR,
     };
   }
-
-  if (city.name === "Bengaluru" && row.bengaluru) {
-    return { family, city, degree, row, range: { ...row.bengaluru }, basis: "bengaluru-reported", factorApplied: null };
-  }
-
-  return { family, city, degree, row, range: { min: row.min, max: row.max }, basis: "india-reported", factorApplied: null };
+  return { ...base, range: { min: band.min, max: band.max }, basis: "entry-band", factorApplied: null };
 }
