@@ -12,7 +12,12 @@ export const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000
 
 /** Shown in the footer. REVIEW with your university's data-protection owner before going live. */
 export const PRIVACY_NOTICE =
-  "Details you enter as a non-SGT candidate stay in your browser on this device. SGT student logins are checked against the university record service. Google sign-in shares your name, email and photo with this site.";
+  "Details you enter as a non-SGT candidate stay in your browser on this device. SGT student logins are checked against the university record service. Google sign-in shares your name, email and photo with this site. If you choose to upload a resume to the Talent Pool, your resume and contact details are sent to our servers and, only with your consent, shown to verified recruiters.";
+
+/** Talent Pool and recruiter endpoints. All go through API_URL (NEXT_PUBLIC_API_URL). */
+export const TALENT_UPLOAD_URL = `${API_URL}/talent/upload`;
+export const RECRUITER_VERIFY_URL = `${API_URL}/recruiter/verify`;
+export const TALENT_SEARCH_URL = `${API_URL}/talent/search`;
 
 export const SGT_ONLINE_HOME = "https://sgtonline.ac.in/";
 export const SGT_ONLINE_APPLY = "https://sgtonline.ac.in/apply/";

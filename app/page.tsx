@@ -3,15 +3,17 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap } from "lucide-react";
+import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap, Upload } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import SalaryEstimatorModal from "@/components/SalaryEstimatorModal";
+import TalentPoolUploadModal from "@/components/TalentPoolUploadModal";
 import { FAQS, PRIVACY_NOTICE, PROGRAMS, SGT_ONLINE_APPLY, SGT_ONLINE_HOME, UGC_URL } from "@/lib/siteConfig";
 
 export default function Home() {
   const { user, ready, openSignIn, signOut } = useAuth();
   const [showFork, setShowFork] = useState(false);
   const [showSalary, setShowSalary] = useState(false);
+  const [showTalent, setShowTalent] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased selection:bg-[#831843]/15 selection:text-[#831843]">
@@ -28,6 +30,7 @@ export default function Home() {
             <a href="#programs" className="hover:text-[#831843] transition">Programs</a>
             <a href="#how-it-works" className="hover:text-[#831843] transition">How it works</a>
             <a href="#faq" className="hover:text-[#831843] transition">FAQ</a>
+            <Link href="/recruiter" className="hover:text-[#831843] transition">For Recruiters</Link>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -83,13 +86,19 @@ export default function Home() {
             coursework already covers, and what is still missing.
           </p>
 
-          <div className="mt-10 flex items-center justify-center">
+          <div className="mt-10 flex flex-wrap items-center justify-center gap-4">
             <button
               onClick={() => setShowFork(true)}
               className="px-12 py-5 bg-[#831843] hover:bg-[#701237] text-white font-bold text-base tracking-wide rounded-full shadow-lg hover:shadow-xl transition flex items-center gap-3 cursor-pointer group"
             >
               <span>Check Yourself</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+            </button>
+            <button
+              onClick={() => setShowTalent(true)}
+              className="px-8 py-5 bg-white border border-[#831843] text-[#831843] hover:bg-[#FAF8F5] font-bold text-sm tracking-wide rounded-full transition flex items-center gap-2 cursor-pointer"
+            >
+              <Upload className="w-4 h-4" /> <span>Upload Resume to Talent Pool</span>
             </button>
           </div>
         </section>
@@ -275,6 +284,7 @@ export default function Home() {
       )}
 
       {showSalary && <SalaryEstimatorModal onClose={() => setShowSalary(false)} />}
+      {showTalent && <TalentPoolUploadModal onClose={() => setShowTalent(false)} />}
     </div>
   );
 }
