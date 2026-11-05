@@ -30,7 +30,7 @@ export default function Home() {
             <a href="#programs" className="hover:text-[#831843] transition">Programs</a>
             <a href="#how-it-works" className="hover:text-[#831843] transition">How it works</a>
             <a href="#faq" className="hover:text-[#831843] transition">FAQ</a>
-            <Link href="/recruiter" className="hover:text-[#831843] transition">For Recruiters</Link>
+            <Link href="/portal" className="hover:text-[#831843] transition">Talent Portal</Link>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">

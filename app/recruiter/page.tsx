@@ -3,7 +3,7 @@
 import React, { useRef, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
-import { GOAL_ROLES, TRACK_LABELS, type GoalTrack } from "@/data/goalRoles";
+import RoleSelect from "@/components/RoleSelect";
 import { RECRUITER_VERIFY_URL, TALENT_SEARCH_URL } from "@/lib/siteConfig";
 import { clearRecruiterSession, saveRecruiterSession, useRecruiterSession } from "@/lib/recruiterStore";
 import {
@@ -12,17 +12,18 @@ import {
   RecruiterFields,
   RecruiterSession,
   SAMPLE_CANDIDATES,
+  RankedCandidate,
   buildMailto,
-  matchingSkills,
+  degreeRouteFor,
   normalizeCompanyUrl,
   parseCandidates,
+  rankCandidates,
   sessionFromVerifyResponse,
   validateRecruiter,
 } from "@/lib/talentPool";
 
 const EMPTY: RecruiterFields = { name: "", workEmail: "", company: "", designation: "", website: "" };
 const TIMEOUT_MS = 15000;
-const tracks = Object.keys(TRACK_LABELS) as GoalTrack[];
 const inputCls = "w-full p-3 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]";
 
 export default function RecruiterPage() {
@@ -31,8 +32,8 @@ export default function RecruiterPage() {
   return (
     <main className="min-h-screen bg-[#FAF8F5] text-[#0E1726]">
       <div className="max-w-4xl mx-auto px-6 py-10">
-        <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#831843] hover:underline">
-          <ArrowLeft className="w-3.5 h-3.5" /> Back to home
+        <Link href="/portal" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#831843] hover:underline">
+          <ArrowLeft className="w-3.5 h-3.5" /> Back to portal
         </Link>
         <h1 className="font-serif text-3xl font-bold mt-4">Recruiter Talent Pool</h1>
         <p className="text-sm text-[#526173] mt-1">Find SGT Online candidates who have chosen to share their profile with verified recruiters.</p>
@@ -162,6 +163,8 @@ type SearchState =
 function TalentSearch({ session }: { session: RecruiterSession }) {
   const [role, setRole] = useState("");
   const [state, setState] = useState<SearchState>({ kind: "idle" });
+  const [minPercent, setMinPercent] = useState(0);
+  const [skillQuery, setSkillQuery] = useState("");
   const abortRef = useRef<AbortController | null>(null);
 
   async function search(nextRole: string) {
@@ -209,17 +212,26 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
 
       <div>
         <label htmlFor="rc-role" className="text-xs font-bold text-[#64748B] block mb-1">Career role</label>
-        <select id="rc-role" className={inputCls} value={role} onChange={(e) => void search(e.target.value)}>
-          <option value="">Select a role to search</option>
-          {tracks.map((t) => (
-            <optgroup key={t} label={TRACK_LABELS[t]}>
-              {GOAL_ROLES.filter((r) => r.track === t).map((r) => (
-                <option key={r.title} value={r.title}>{r.title}</option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
+        <RoleSelect id="rc-role" value={role} onChange={(r) => void search(r)} placeholder="Select a role to search" />
       </div>
+
+      {role && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label htmlFor="rc-min" className="text-xs font-bold text-[#64748B] block mb-1">Minimum skill match</label>
+            <select id="rc-min" className={inputCls} value={minPercent} onChange={(e) => setMinPercent(Number(e.target.value))}>
+              <option value={0}>Any</option>
+              <option value={30}>30% or more</option>
+              <option value={50}>50% or more</option>
+              <option value={70}>70% or more</option>
+            </select>
+          </div>
+          <div>
+            <label htmlFor="rc-skill" className="text-xs font-bold text-[#64748B] block mb-1">Must list skill</label>
+            <input id="rc-skill" className={inputCls} value={skillQuery} onChange={(e) => setSkillQuery(e.target.value)} placeholder="e.g. python sql" />
+          </div>
+        </div>
+      )}
 
       {state.kind === "loading" && <p className="text-xs text-[#526173] flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Searching...</p>}
       {state.kind === "error" && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3" role="alert">{state.message}</p>}
@@ -230,33 +242,44 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>The Talent Pool service cannot be reached right now, so no real candidates are shown. Below is a <b>sample layout only</b>. These are not real people.</span>
           </div>
-          <CandidateGrid candidates={SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: role }))} role={role} session={session} />
+          <CandidateGrid ranked={rankCandidates(SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: role })), role, { minPercent, skillQuery })} session={session} />
         </>
       )}
 
       {state.kind === "ok" &&
-        (state.candidates.length === 0 ? (
-          <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No candidates have shared a profile for this role yet.</p>
-        ) : (
-          <CandidateGrid candidates={state.candidates} role={role} session={session} />
-        ))}
+        (() => {
+          const ranked = rankCandidates(state.candidates, role, { minPercent, skillQuery });
+          if (state.candidates.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No candidates have shared a profile for this role yet.</p>;
+          if (ranked.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No candidates match these filters. Try lowering the minimum match.</p>;
+          return <CandidateGrid ranked={ranked} session={session} />;
+        })()}
     </div>
   );
 }
 
-function CandidateGrid({ candidates, role, session }: { candidates: Candidate[]; role: string; session: RecruiterSession }) {
+function CandidateGrid({ ranked, session }: { ranked: RankedCandidate[]; session: RecruiterSession }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {candidates.map((c) => {
-        const matched = matchingSkills(role, c.skills);
+      {ranked.map(({ candidate: c, percent, matched }) => {
         const mailto = c.isSample ? null : buildMailto(c, session);
+        const route = degreeRouteFor(c.targetRole);
         return (
           <article key={c.id} className="bg-white border border-[#E5DFD5] rounded-2xl p-5 shadow-xs space-y-3">
-            <div>
-              <h3 className="font-serif text-lg font-bold">{c.fullName}</h3>
-              <p className="text-xs text-[#526173]">{c.targetRole}</p>
-              <p className="text-[11px] text-[#64748B] mt-0.5">Graduation / expected: {c.graduationYear ?? "not given"}</p>
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <h3 className="font-serif text-lg font-bold">{c.fullName}</h3>
+                <p className="text-xs text-[#526173]">{c.targetRole}</p>
+              </div>
+              <div className="text-right shrink-0">
+                <span className="font-serif text-2xl font-bold text-[#831843]">{percent}%</span>
+                <span className="block text-[10px] uppercase font-bold text-[#64748B]">skill match</span>
+              </div>
             </div>
+            <p className="text-[11px] text-[#64748B]">
+              {c.program ? <>Programme: <b>{c.program}</b> &bull; </> : null}
+              {route ? <>Degree route: {route} &bull; </> : null}
+              Graduation / expected: {c.graduationYear ?? "not given"}
+            </p>
             <div>
               <span className="text-[10px] uppercase font-bold text-[#64748B]">Matching skills</span>
               <div className="flex flex-wrap gap-1.5 mt-1">

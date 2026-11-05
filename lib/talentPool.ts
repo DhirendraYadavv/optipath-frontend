@@ -5,7 +5,7 @@
 // IMPORTANT: every check in this file is a convenience for the user. The backend must repeat them
 // (file type and size, work-email rule, recruiter verification, consent) because browser code can be bypassed.
 
-import { GOAL_ROLE_TITLES } from "@/data/goalRoles";
+import { GOAL_ROLES, GOAL_ROLE_TITLES } from "@/data/goalRoles";
 import { computeSkillMatch } from "@/lib/skillMatch";
 
 // ---------------------------------------------------------------------------
@@ -86,7 +86,7 @@ export function validateUpload(f: UploadFields, file: { name: string; size: numb
   return e;
 }
 
-export function buildUploadFormData(f: UploadFields, file: Blob, fileName: string): FormData {
+export function buildUploadFormData(f: UploadFields, file: Blob, fileName: string, extras: Record<string, string> = {}): FormData {
   const fd = new FormData();
   fd.append("fullName", f.fullName.trim());
   fd.append("email", f.email.trim().toLowerCase());
@@ -95,6 +95,7 @@ export function buildUploadFormData(f: UploadFields, file: Blob, fileName: strin
   fd.append("targetRole", f.targetRole);
   fd.append("graduationYear", f.graduationYear.trim());
   fd.append("recruiterConsent", f.consent ? "true" : "false");
+  for (const [k, v] of Object.entries(extras)) fd.append(k, v);
   fd.append("resume", file, fileName);
   return fd;
 }
@@ -191,6 +192,8 @@ export interface Candidate {
   targetRole: string;
   skills: string[];
   graduationYear: number | null;
+  /** SGT programme as sent by the backend, e.g. "BCA". Optional. */
+  program?: string;
   /** Only present when the backend returns it for candidates who gave consent. */
   contactEmail?: string;
   /** True for the built-in layout preview. Never set by the backend. */
@@ -212,7 +215,8 @@ export function parseCandidates(body: unknown): Candidate[] {
     const skills = Array.isArray(c.skills) ? c.skills.filter((s): s is string => typeof s === "string" && s.trim().length > 0).map((s) => s.trim()) : [];
     const gy = typeof c.graduationYear === "number" && Number.isInteger(c.graduationYear) ? c.graduationYear : null;
     const email = str(c.contactEmail);
-    out.push({ id, fullName, targetRole, skills, graduationYear: gy, contactEmail: isValidEmail(email) ? email : undefined });
+    const program = str(c.program);
+    out.push({ id, fullName, targetRole, skills, graduationYear: gy, program: program || undefined, contactEmail: isValidEmail(email) ? email : undefined });
   }
   return out;
 }
@@ -221,6 +225,40 @@ export function parseCandidates(body: unknown): Candidate[] {
 export function matchingSkills(role: string, skills: string[]): string[] {
   if (skills.length === 0) return [];
   return computeSkillMatch(role, skills.join(", ")).covered.map((s) => s.label);
+}
+
+const PROGRAM_LABEL: Record<string, string> = { bca: "BCA", mca: "MCA", bba: "BBA", mba: "MBA", bcom: "B.Com" };
+
+/** SGT degrees that open a goal role, e.g. "BCA / MCA". Empty string for a role outside the list. */
+export function degreeRouteFor(role: string): string {
+  const r = GOAL_ROLES.find((g) => g.title === role);
+  return r ? r.programs.map((p) => PROGRAM_LABEL[p]).join(" / ") : "";
+}
+
+export interface RankedCandidate {
+  candidate: Candidate;
+  /** Share of the role's core skills the candidate lists, 0 to 100. */
+  percent: number;
+  matched: string[];
+}
+
+export interface CandidateFilter {
+  minPercent: number;
+  /** Free text; every word must appear in the candidate's skills. */
+  skillQuery: string;
+}
+
+/** Scores candidates for a role with the shared skill matcher, applies the filters, sorts best first. */
+export function rankCandidates(candidates: Candidate[], role: string, filter: CandidateFilter = { minPercent: 0, skillQuery: "" }): RankedCandidate[] {
+  const words = filter.skillQuery.toLowerCase().split(/\s+/).filter(Boolean);
+  const ranked = candidates.map((candidate) => {
+    const m = computeSkillMatch(role, candidate.skills.join(", "));
+    return { candidate, percent: candidate.skills.length ? m.percentage : 0, matched: m.covered.map((s) => s.label) };
+  });
+  return ranked
+    .filter((r) => r.percent >= filter.minPercent)
+    .filter((r) => words.every((w) => r.candidate.skills.some((sk) => sk.toLowerCase().includes(w))))
+    .sort((a, b) => b.percent - a.percent || a.candidate.fullName.localeCompare(b.candidate.fullName));
 }
 
 export function buildMailto(c: Candidate, recruiter: Pick<RecruiterSession, "name" | "company" | "designation">): string | null {

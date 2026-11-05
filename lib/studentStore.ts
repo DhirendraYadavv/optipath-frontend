@@ -37,6 +37,22 @@ export function saveStudent(value: object): void {
   notify();
 }
 
+export function saveStudentToken(token: string): void {
+  try {
+    localStorage.setItem(TOKEN_KEY, token);
+  } catch {
+    /* storage blocked */
+  }
+}
+
+export function readStudentToken(): string | null {
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
+}
+
 export function clearStudent(): void {
   localStorage.removeItem(STUDENT_KEY);
   localStorage.removeItem(TOKEN_KEY);
