@@ -882,3 +882,9 @@ export function analyzeAcademicGap(role: string, groups: CourseGroups): Academic
     afterSyllabusPercent: pct(counts.completed + counts.in_progress + counts.upcoming),
   };
 }
+
+/** Labels of every catalogue skill that literally appears in the text (no implied skills). */
+export function detectSkillLabels(text: string): string[] {
+  const found = detectSkills(text, false);
+  return Array.from(found.keys()).map((id) => SKILLS[id].label);
+}

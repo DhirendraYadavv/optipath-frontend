@@ -15,15 +15,17 @@ export default function RoleSelect({ id, value, onChange, placeholder = "Select 
       className="w-full p-3 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]"
     >
       <option value="">{placeholder}</option>
-      {tracks.map((t) => (
-        <optgroup key={t} label={TRACK_LABELS[t]}>
-          {GOAL_ROLES.filter((r) => r.track === t).map((r) => (
-            <option key={r.title} value={r.title}>
-              {r.title}
-            </option>
-          ))}
-        </optgroup>
-      ))}
+      {tracks.flatMap((t) =>
+        Array.from(new Set(GOAL_ROLES.filter((r) => r.track === t).map((r) => r.category))).map((cat) => (
+          <optgroup key={`${t}-${cat}`} label={`${TRACK_LABELS[t].split(" (")[0]}: ${cat}`}>
+            {GOAL_ROLES.filter((r) => r.track === t && r.category === cat).map((r) => (
+              <option key={r.title} value={r.title}>
+                {r.title}
+              </option>
+            ))}
+          </optgroup>
+        )),
+      )}
     </select>
   );
 }

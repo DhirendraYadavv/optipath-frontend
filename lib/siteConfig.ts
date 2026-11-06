@@ -18,6 +18,8 @@ export const PRIVACY_NOTICE =
 export const TALENT_UPLOAD_URL = `${API_URL}/talent/upload`;
 export const RECRUITER_VERIFY_URL = `${API_URL}/recruiter/verify`;
 export const TALENT_SEARCH_URL = `${API_URL}/talent/search`;
+/** GET {TALENT_RESUME_URL}/{candidateId} returns the resume file for a verified recruiter. */
+export const TALENT_RESUME_URL = `${API_URL}/talent/resume`;
 
 export const SGT_ONLINE_HOME = "https://sgtonline.ac.in/";
 export const SGT_ONLINE_APPLY = "https://sgtonline.ac.in/apply/";

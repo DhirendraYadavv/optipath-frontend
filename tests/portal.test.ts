@@ -116,11 +116,11 @@ test("candidates are scored, filtered and sorted", () => {
   assert.deepEqual(rankCandidates(cands, BACKEND, { minPercent: 0, skillQuery: "rust" }), []);
 });
 
-test("degree route comes only from the 19 goal roles", () => {
+test("degree route comes only from the goal roles", () => {
   assert.equal(degreeRouteFor("Financial Analyst"), "B.Com / MBA");
   assert.equal(degreeRouteFor(BACKEND), "BCA / MCA");
   assert.equal(degreeRouteFor("Plumber"), "");
-  assert.equal(GOAL_ROLE_TITLES.length, 19);
+  assert.equal(GOAL_ROLE_TITLES.length, new Set(GOAL_ROLE_TITLES).size);
 });
 
 test("candidate parsing keeps the programme when given", () => {
@@ -136,4 +136,16 @@ test("upload form data accepts extra fields (skills, programme, source)", () => 
   assert.equal(fd.get("program"), "BCA");
   assert.equal(fd.get("source"), "student-portal");
   assert.equal(fd.get("sgtRegNo"), "SGT2023BCA1042");
+});
+
+test("every goal role maps to a specific skill family and a degree", async () => {
+  const { GOAL_ROLES } = await import("@/data/goalRoles");
+  const { detectRoleFamily } = await import("@/lib/skillMatch");
+  for (const r of GOAL_ROLES) {
+    assert.notEqual(detectRoleFamily(r.title), "generic", r.title);
+    assert.ok(r.programs.length > 0, r.title);
+  }
+  for (const p of ["bca", "mca", "bba", "mba", "bcom"] as const) {
+    assert.ok(GOAL_ROLES.filter((r) => r.programs.includes(p)).length >= 10, p);
+  }
 });

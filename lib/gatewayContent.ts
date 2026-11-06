@@ -25,8 +25,9 @@ export const RECRUITER_CARD: GatewayCard = {
   title: "For Enterprise Recruiters & Corporate Partners",
   badges: ["Verified Enterprise Access", `${TRACK_COUNT} Degree Tracks`],
   points: [
-    "Zero-spam talent search: free email domains such as Gmail and Yahoo are blocked.",
-    "Candidates ranked by skill match against each role's core skills.",
+    "Sign in with your official company email only. Free email domains such as Gmail and Yahoo are blocked.",
+    "Browse uploaded resumes and search them by keyword.",
+    "Optionally narrow by career track and rank candidates by skill match.",
     "One-click outreach to opted-in candidates through a mailto: link.",
   ],
   cta: "Enter Recruiter Portal",
@@ -35,12 +36,12 @@ export const RECRUITER_CARD: GatewayCard = {
 export const STUDENT_CARD: GatewayCard = {
   href: "/portal/student",
   title: "For SGT Students & Alumni",
-  badges: ["Student Authentication Required", "SGT CDOE Syllabi"],
+  badges: ["Google Sign-in Unlocks ATS Check", "SGT CDOE Syllabi"],
   points: [
-    `Resume skills analysis against ${TRACK_COUNT} career-track roles.`,
+    "Upload your resume and details, then join the corporate Talent Pool.",
+    `ATS-readiness check with concrete fixes, against ${TRACK_COUNT} career-track roles (Google sign-in required).`,
     "Skill breakdown into Foundation Gaps and Production Gaps.",
-    "Course recommendations mapped to your SGT syllabus.",
-    "Opt in to publish your profile to the corporate Talent Pool.",
+    "Course recommendations mapped to your SGT syllabus once your SGT record is checked.",
   ],
   cta: "Audit Resume & Join Talent Pool",
 };

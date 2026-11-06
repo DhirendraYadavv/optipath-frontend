@@ -4,7 +4,7 @@ import React from "react";
 import { ClipboardList, Hammer, Layers } from "lucide-react";
 import { GapAction, StudentGapReport, planText } from "@/lib/gapReport";
 
-function ActionList({ title, hint, icon, items }: { title: string; hint: string; icon: React.ReactNode; items: GapAction[] }) {
+function ActionList({ title, hint, icon, items, showPlans }: { title: string; hint: string; icon: React.ReactNode; items: GapAction[]; showPlans: boolean }) {
   return (
     <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-3">
       <div className="flex items-center gap-2">
@@ -21,7 +21,7 @@ function ActionList({ title, hint, icon, items }: { title: string; hint: string;
             <li key={a.skill.id} className="text-xs border border-[#EAE4D9] rounded-xl p-3 bg-[#FAF8F5]">
               <span className="font-bold">{a.skill.label}</span>
               <span className="block text-[#526173] mt-0.5">{a.skill.reason}</span>
-              <span className="block mt-1 text-[#831843] font-semibold">{planText(a.plan)}</span>
+              {showPlans && <span className="block mt-1 text-[#831843] font-semibold">{planText(a.plan)}</span>}
             </li>
           ))}
         </ul>
@@ -30,7 +30,7 @@ function ActionList({ title, hint, icon, items }: { title: string; hint: string;
   );
 }
 
-export default function GapReportView({ report, role }: { report: StudentGapReport; role: string }) {
+export default function GapReportView({ report, role, showPlans }: { report: StudentGapReport; role: string; showPlans: boolean }) {
   const m = report.match;
   if (!report.hasInput || !m) return null;
   return (
@@ -50,17 +50,24 @@ export default function GapReportView({ report, role }: { report: StudentGapRepo
         </div>
       </div>
 
+      {!showPlans && (
+        <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-3">
+          To see which SGT course covers each gap, <a href="/login" className="font-bold text-[#831843] underline">check your SGT student record</a> first.
+        </p>
+      )}
       <ActionList
         title="Foundation gaps"
         hint="Fundamentals a degree normally teaches."
         icon={<Layers className="w-4 h-4 text-[#831843]" />}
         items={report.foundation}
+        showPlans={showPlans}
       />
       <ActionList
         title="Production gaps"
         hint="Skills you pick up by building and shipping real projects."
         icon={<Hammer className="w-4 h-4 text-[#831843]" />}
         items={report.production}
+        showPlans={showPlans}
       />
 
       <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-3">

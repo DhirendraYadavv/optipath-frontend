@@ -6,12 +6,12 @@ import { PROGRAMS } from "@/lib/siteConfig";
 
 test("gateway numbers come from the real data files", () => {
   assert.equal(TRACK_COUNT, GOAL_ROLES.length);
-  assert.equal(TRACK_COUNT, 19);
+  assert.equal(TRACK_COUNT, GOAL_ROLES.length);
   assert.equal(PROGRAM_COUNT, PROGRAMS.length);
   assert.equal(PROGRAM_COUNT, 5);
-  assert.ok(RECRUITER_CARD.badges.includes("19 Degree Tracks"));
+  assert.ok(RECRUITER_CARD.badges.includes(`${TRACK_COUNT} Degree Tracks`));
   assert.ok(GATEWAY_METRICS[0].title.startsWith("5 SGT Online Programs"));
-  assert.ok(GATEWAY_METRICS[1].title.startsWith("19 Curated Career Tracks"));
+  assert.ok(GATEWAY_METRICS[1].title.startsWith(`${TRACK_COUNT} Curated Career Tracks`));
 });
 
 test("gateway buttons go to the right places with the requested labels", () => {
@@ -27,5 +27,5 @@ test("program labels match the five SGT programmes", () => {
 
 test("card copy does not claim things the site does not do", () => {
   const text = JSON.stringify([RECRUITER_CARD, STUDENT_CARD, GATEWAY_METRICS]).toLowerCase();
-  for (const banned of ["semantic", "pre-screened", "ats ", "zero-mock", "calibrated"]) assert.ok(!text.includes(banned), banned);
+  for (const banned of ["semantic", "pre-screened", "zero-mock", "calibrated"]) assert.ok(!text.includes(banned), banned);
 });

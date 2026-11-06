@@ -93,10 +93,27 @@ export function wordXmlToText(xml: string): string {
     .trim();
 }
 
-export async function extractDocxText(data: ArrayBuffer): Promise<string> {
+export interface DocxContent {
+  text: string;
+  hasTables: boolean;
+  hasImages: boolean;
+  hasTextBoxes: boolean;
+}
+
+export async function extractDocxContent(data: ArrayBuffer): Promise<DocxContent> {
   const entry = await readZipEntry(new Uint8Array(data), "word/document.xml");
   if (!entry) throw new Error("This does not look like a Word document.");
-  return wordXmlToText(new TextDecoder().decode(entry));
+  const xml = new TextDecoder().decode(entry);
+  return {
+    text: wordXmlToText(xml),
+    hasTables: /<w:tbl[ >/]/.test(xml),
+    hasImages: /<w:drawing[ >/]|<w:pict[ >/]/.test(xml),
+    hasTextBoxes: /<w:txbxContent[ >/]/.test(xml),
+  };
+}
+
+export async function extractDocxText(data: ArrayBuffer): Promise<string> {
+  return (await extractDocxContent(data)).text;
 }
 
 export type ResumeKind = "pdf" | "docx" | "unsupported";
@@ -108,14 +125,34 @@ export function resumeKind(fileName: string): ResumeKind {
   return "unsupported";
 }
 
-/** Extracts text from a PDF or DOCX. Throws a readable Error if the file cannot be read. */
-export async function extractResumeText(file: File): Promise<string> {
+/** What we learned from reading a resume file. Used for the ATS-readiness checks. */
+export interface ResumeSignals {
+  kind: "pdf" | "docx";
+  text: string;
+  /** PDF only. */
+  pages?: number;
+  /** DOCX only: layout features that ATS software often reads badly. */
+  hasTables?: boolean;
+  hasImages?: boolean;
+  hasTextBoxes?: boolean;
+}
+
+/** Reads a PDF or DOCX. Throws a readable Error if the file cannot be read. */
+export async function extractResumeSignals(file: File): Promise<ResumeSignals> {
   const kind = resumeKind(file.name);
   const data = await file.arrayBuffer();
-  if (kind === "docx") return extractDocxText(data);
+  if (kind === "docx") {
+    const d = await extractDocxContent(data);
+    return { kind: "docx", ...d };
+  }
   if (kind === "pdf") {
     const { extractPdfText } = await import("@/lib/resumePdf");
-    return extractPdfText(data);
+    const r = await extractPdfText(data);
+    return { kind: "pdf", text: r.text, pages: r.pages };
   }
   throw new Error("Only PDF or DOCX files are supported.");
+}
+
+export async function extractResumeText(file: File): Promise<string> {
+  return (await extractResumeSignals(file)).text;
 }

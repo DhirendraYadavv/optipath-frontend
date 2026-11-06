@@ -194,6 +194,10 @@ export interface Candidate {
   graduationYear: number | null;
   /** SGT programme as sent by the backend, e.g. "BCA". Optional. */
   program?: string;
+  /** Short excerpt of the resume around the searched keyword, as sent by the backend. Optional. */
+  snippet?: string;
+  /** True when the backend can serve this candidate's resume file. */
+  hasResume?: boolean;
   /** Only present when the backend returns it for candidates who gave consent. */
   contactEmail?: string;
   /** True for the built-in layout preview. Never set by the backend. */
@@ -216,7 +220,7 @@ export function parseCandidates(body: unknown): Candidate[] {
     const gy = typeof c.graduationYear === "number" && Number.isInteger(c.graduationYear) ? c.graduationYear : null;
     const email = str(c.contactEmail);
     const program = str(c.program);
-    out.push({ id, fullName, targetRole, skills, graduationYear: gy, program: program || undefined, contactEmail: isValidEmail(email) ? email : undefined });
+    out.push({ id, fullName, targetRole, skills, graduationYear: gy, program: program || undefined, snippet: str(c.snippet).slice(0, 400) || undefined, hasResume: c.hasResume === true, contactEmail: isValidEmail(email) ? email : undefined });
   }
   return out;
 }
@@ -259,6 +263,22 @@ export function rankCandidates(candidates: Candidate[], role: string, filter: Ca
     .filter((r) => r.percent >= filter.minPercent)
     .filter((r) => words.every((w) => r.candidate.skills.some((sk) => sk.toLowerCase().includes(w))))
     .sort((a, b) => b.percent - a.percent || a.candidate.fullName.localeCompare(b.candidate.fullName));
+}
+
+export interface TextSegment {
+  text: string;
+  hit: boolean;
+}
+
+/** Splits text so the searched words can be highlighted without injecting HTML. Case-insensitive. */
+export function splitHighlight(text: string, query: string): TextSegment[] {
+  const words = Array.from(new Set(query.toLowerCase().split(/\s+/).filter((w) => w.length > 0)));
+  if (!text || words.length === 0) return [{ text, hit: false }];
+  const re = new RegExp(`(${words.map((w) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})`, "gi");
+  return text
+    .split(re)
+    .filter((t) => t.length > 0)
+    .map((t) => ({ text: t, hit: words.includes(t.toLowerCase()) }));
 }
 
 export function buildMailto(c: Candidate, recruiter: Pick<RecruiterSession, "name" | "company" | "designation">): string | null {

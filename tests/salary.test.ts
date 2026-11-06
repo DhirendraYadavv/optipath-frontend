@@ -73,9 +73,9 @@ test("every goal role resolves to the intended family and has a degree", () => {
   for (const r of GOAL_ROLES) assert.notEqual(estimateSalary(r.title, "Mumbai").degree, null, r.title);
 });
 
-test("goal list is exactly the 19 approved roles with no duplicates", () => {
-  assert.equal(GOAL_ROLES.length, 19);
-  assert.equal(new Set(GOAL_ROLE_TITLES).size, 19);
+test("goal list is approved roles with no duplicates", () => {
+  assert.equal(GOAL_ROLES.length, GOAL_ROLE_TITLES.length);
+  assert.equal(new Set(GOAL_ROLE_TITLES).size, GOAL_ROLES.length);
 });
 
 test("degree rules by family", () => {

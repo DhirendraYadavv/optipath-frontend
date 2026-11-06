@@ -3,18 +3,15 @@
 import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap, Upload } from "lucide-react";
+import { ArrowRight, ChevronDown, DollarSign, LogOut, Sparkles, Target, UserCheck, UserPlus, X, Briefcase, GraduationCap, Handshake, Upload } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import SalaryEstimatorModal from "@/components/SalaryEstimatorModal";
-import TalentGateway from "@/components/TalentGateway";
-import TalentPoolUploadModal from "@/components/TalentPoolUploadModal";
 import { FAQS, PRIVACY_NOTICE, PROGRAMS, SGT_ONLINE_APPLY, SGT_ONLINE_HOME, UGC_URL } from "@/lib/siteConfig";
 
 export default function Home() {
   const { user, ready, openSignIn, signOut } = useAuth();
   const [showFork, setShowFork] = useState(false);
   const [showSalary, setShowSalary] = useState(false);
-  const [showTalent, setShowTalent] = useState(false);
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased selection:bg-[#831843]/15 selection:text-[#831843]">
@@ -31,15 +28,21 @@ export default function Home() {
             <a href="#programs" className="hover:text-[#831843] transition">Programs</a>
             <a href="#how-it-works" className="hover:text-[#831843] transition">How it works</a>
             <a href="#faq" className="hover:text-[#831843] transition">FAQ</a>
-            <a href="#talent-gateway" className="hover:text-[#831843] transition">Talent Gateway</a>
           </nav>
 
           <div className="flex items-center gap-2 sm:gap-3">
+            <Link
+              href="/portal"
+              className="group inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-linear-to-r from-indigo-600 via-[#831843] to-cyan-600 text-white text-xs sm:text-sm font-extrabold tracking-wide shadow-lg shadow-indigo-900/20 ring-2 ring-indigo-300/60 hover:shadow-xl hover:scale-[1.03] transition"
+            >
+              <Handshake className="w-4 h-4 sm:w-5 sm:h-5" />
+              <span>Talent Gateway</span>
+            </Link>
             <button
               onClick={() => setShowSalary(true)}
               className="flex items-center gap-1.5 text-xs font-bold text-[#831843] hover:text-[#701237] transition cursor-pointer"
             >
-              <DollarSign className="w-3.5 h-3.5" /> <span>Salary Estimator</span>
+              <DollarSign className="w-3.5 h-3.5" /> <span className="hidden sm:inline">Salary Estimator</span><span className="sr-only sm:hidden">Salary Estimator</span>
             </button>
 
             {!ready ? (
@@ -95,17 +98,14 @@ export default function Home() {
               <span>Check Yourself</span>
               <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
             </button>
-            <button
-              onClick={() => setShowTalent(true)}
+            <Link
+              href="/portal/student"
               className="px-8 py-5 bg-white border border-[#831843] text-[#831843] hover:bg-[#FAF8F5] font-bold text-sm tracking-wide rounded-full transition flex items-center gap-2 cursor-pointer"
             >
               <Upload className="w-4 h-4" /> <span>Upload Resume to Talent Pool</span>
-            </button>
+            </Link>
           </div>
         </section>
-
-        {/* ------------------- TALENT & CAREER GATEWAY (CENTERPIECE) ------------------- */}
-        <TalentGateway />
 
         {/* --------------------------- HOW IT WORKS --------------------------- */}
         <section id="how-it-works" className="max-w-5xl mx-auto px-6 py-12 scroll-mt-24">
@@ -288,7 +288,6 @@ export default function Home() {
       )}
 
       {showSalary && <SalaryEstimatorModal onClose={() => setShowSalary(false)} />}
-      {showTalent && <TalentPoolUploadModal onClose={() => setShowTalent(false)} />}
     </div>
   );
 }

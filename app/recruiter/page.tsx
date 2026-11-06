@@ -2,9 +2,9 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, Loader2, Mail, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, FileText, Loader2, Mail, Search, ShieldCheck } from "lucide-react";
 import RoleSelect from "@/components/RoleSelect";
-import { RECRUITER_VERIFY_URL, TALENT_SEARCH_URL } from "@/lib/siteConfig";
+import { RECRUITER_VERIFY_URL, TALENT_RESUME_URL, TALENT_SEARCH_URL } from "@/lib/siteConfig";
 import { clearRecruiterSession, saveRecruiterSession, useRecruiterSession } from "@/lib/recruiterStore";
 import {
   Candidate,
@@ -12,9 +12,9 @@ import {
   RecruiterFields,
   RecruiterSession,
   SAMPLE_CANDIDATES,
-  RankedCandidate,
   buildMailto,
   degreeRouteFor,
+  splitHighlight,
   normalizeCompanyUrl,
   parseCandidates,
   rankCandidates,
@@ -36,7 +36,7 @@ export default function RecruiterPage() {
           <ArrowLeft className="w-3.5 h-3.5" /> Back to portal
         </Link>
         <h1 className="font-serif text-3xl font-bold mt-4">Recruiter Talent Pool</h1>
-        <p className="text-sm text-[#526173] mt-1">Find SGT Online candidates who have chosen to share their profile with verified recruiters.</p>
+        <p className="text-sm text-[#526173] mt-1">Browse the resumes students have chosen to share, and search them by keyword.</p>
 
         <div className="mt-8">
           {!ready ? <div className="h-40" aria-hidden="true" /> : session ? <TalentSearch session={session} /> : <VerificationGate />}
@@ -156,30 +156,42 @@ function VerificationGate() {
 type SearchState =
   | { kind: "idle" }
   | { kind: "loading" }
-  | { kind: "ok"; candidates: Candidate[] }
-  | { kind: "offline" }
+  | { kind: "ok"; candidates: Candidate[]; query: string; role: string }
+  | { kind: "offline"; query: string; role: string }
   | { kind: "error"; message: string };
+
+interface Listed {
+  candidate: Candidate;
+  /** Null when no role is selected, so there is nothing to score against. */
+  percent: number | null;
+  matched: string[];
+}
+
+const PAGE_LIMIT = 50;
 
 function TalentSearch({ session }: { session: RecruiterSession }) {
   const [role, setRole] = useState("");
-  const [state, setState] = useState<SearchState>({ kind: "idle" });
+  const [keyword, setKeyword] = useState("");
   const [minPercent, setMinPercent] = useState(0);
-  const [skillQuery, setSkillQuery] = useState("");
+  const [state, setState] = useState<SearchState>({ kind: "idle" });
+  const [resumeError, setResumeError] = useState<string | null>(null);
   const abortRef = useRef<AbortController | null>(null);
 
-  async function search(nextRole: string) {
-    setRole(nextRole);
+  async function search(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
     abortRef.current?.abort();
-    if (!nextRole) {
-      setState({ kind: "idle" });
-      return;
-    }
     const controller = new AbortController();
     abortRef.current = controller;
     const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
+    const q = keyword.trim();
+    const r = role;
+    setResumeError(null);
     setState({ kind: "loading" });
     try {
-      const res = await fetch(`${TALENT_SEARCH_URL}?role=${encodeURIComponent(nextRole)}`, {
+      const params = new URLSearchParams();
+      if (q) params.set("q", q);
+      if (r) params.set("role", r);
+      const res = await fetch(`${TALENT_SEARCH_URL}?${params.toString()}`, {
         headers: { Authorization: `Bearer ${session.token}` },
         signal: controller.signal,
       });
@@ -188,17 +200,35 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
         return;
       }
       if (!res.ok) {
-        setState(res.status >= 500 ? { kind: "offline" } : { kind: "error", message: "The search was not accepted. Try again." });
+        setState(res.status >= 500 ? { kind: "offline", query: q, role: r } : { kind: "error", message: "The search was not accepted. Try again." });
         return;
       }
       const body: unknown = await res.json().catch(() => null);
-      setState({ kind: "ok", candidates: parseCandidates(body) });
+      setState({ kind: "ok", candidates: parseCandidates(body), query: q, role: r });
     } catch {
-      if (!controller.signal.aborted || abortRef.current === controller) setState({ kind: "offline" });
+      if (abortRef.current === controller) setState({ kind: "offline", query: q, role: r });
     } finally {
       clearTimeout(timer);
     }
   }
+
+  async function openResume(id: string) {
+    setResumeError(null);
+    try {
+      const res = await fetch(`${TALENT_RESUME_URL}/${encodeURIComponent(id)}`, { headers: { Authorization: `Bearer ${session.token}` } });
+      if (!res.ok) throw new Error("not ok");
+      const url = URL.createObjectURL(await res.blob());
+      window.open(url, "_blank", "noopener");
+      setTimeout(() => URL.revokeObjectURL(url), 60000);
+    } catch {
+      setResumeError("Could not open that resume right now.");
+    }
+  }
+
+  const listed = (candidates: Candidate[], r: string): Listed[] =>
+    r
+      ? rankCandidates(candidates, r, { minPercent, skillQuery: "" })
+      : candidates.map((candidate) => ({ candidate, percent: null, matched: [] }));
 
   return (
     <div className="space-y-5">
@@ -210,59 +240,82 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
         <button onClick={clearRecruiterSession} className="text-xs font-bold text-[#831843] hover:underline cursor-pointer">Sign out</button>
       </div>
 
-      <div>
-        <label htmlFor="rc-role" className="text-xs font-bold text-[#64748B] block mb-1">Career role</label>
-        <RoleSelect id="rc-role" value={role} onChange={(r) => void search(r)} placeholder="Select a role to search" />
-      </div>
-
-      {role && (
+      <form onSubmit={(e) => void search(e)} className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-3">
+        <div>
+          <label htmlFor="rc-key" className="text-xs font-bold text-[#64748B] block mb-1">Keyword (leave empty to list all resumes)</label>
+          <div className="relative">
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+            <input id="rc-key" className={`${inputCls} pl-9`} value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="e.g. python, power bi, tally, recruitment" />
+          </div>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="rc-min" className="text-xs font-bold text-[#64748B] block mb-1">Minimum skill match</label>
-            <select id="rc-min" className={inputCls} value={minPercent} onChange={(e) => setMinPercent(Number(e.target.value))}>
+            <label htmlFor="rc-role" className="text-xs font-bold text-[#64748B] block mb-1">Career role (optional)</label>
+            <RoleSelect id="rc-role" value={role} onChange={setRole} placeholder="All roles" />
+          </div>
+          <div>
+            <label htmlFor="rc-min" className="text-xs font-bold text-[#64748B] block mb-1">Minimum skill match (needs a role)</label>
+            <select id="rc-min" className={inputCls} value={minPercent} onChange={(e) => setMinPercent(Number(e.target.value))} disabled={!role}>
               <option value={0}>Any</option>
               <option value={30}>30% or more</option>
               <option value={50}>50% or more</option>
               <option value={70}>70% or more</option>
             </select>
           </div>
-          <div>
-            <label htmlFor="rc-skill" className="text-xs font-bold text-[#64748B] block mb-1">Must list skill</label>
-            <input id="rc-skill" className={inputCls} value={skillQuery} onChange={(e) => setSkillQuery(e.target.value)} placeholder="e.g. python sql" />
-          </div>
         </div>
-      )}
+        <button type="submit" className="px-6 py-2.5 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full cursor-pointer">Search resumes</button>
+      </form>
 
       {state.kind === "loading" && <p className="text-xs text-[#526173] flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Searching...</p>}
       {state.kind === "error" && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3" role="alert">{state.message}</p>}
+      {resumeError && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3" role="alert">{resumeError}</p>}
 
       {state.kind === "offline" && (
         <>
           <div className="flex items-start gap-2 text-xs bg-amber-50 border border-amber-300 text-amber-900 rounded-xl p-3" role="status">
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
-            <span>The Talent Pool service cannot be reached right now, so no real candidates are shown. Below is a <b>sample layout only</b>. These are not real people.</span>
+            <span>The Talent Pool service cannot be reached right now, so no real resumes are shown. Below is a <b>sample layout only</b>. These are not real people.</span>
           </div>
-          <CandidateGrid ranked={rankCandidates(SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: role })), role, { minPercent, skillQuery })} session={session} />
+          <CandidateGrid items={listed(SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: state.role || c.targetRole })), state.role)} query={state.query} session={session} onOpenResume={openResume} />
         </>
       )}
 
       {state.kind === "ok" &&
         (() => {
-          const ranked = rankCandidates(state.candidates, role, { minPercent, skillQuery });
-          if (state.candidates.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No candidates have shared a profile for this role yet.</p>;
-          if (ranked.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No candidates match these filters. Try lowering the minimum match.</p>;
-          return <CandidateGrid ranked={ranked} session={session} />;
+          const items = listed(state.candidates, state.role);
+          if (state.candidates.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">{state.query ? `No resumes mention "${state.query}".` : "No resumes have been shared yet."}</p>;
+          if (items.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No resumes match these filters. Try lowering the minimum match.</p>;
+          return (
+            <>
+              <p className="text-xs text-[#526173]">
+                {items.length} resume{items.length === 1 ? "" : "s"}{state.query ? ` for "${state.query}"` : ""}
+                {items.length > PAGE_LIMIT ? `. Showing the first ${PAGE_LIMIT}; narrow the search to see others.` : ""}
+              </p>
+              <CandidateGrid items={items.slice(0, PAGE_LIMIT)} query={state.query} session={session} onOpenResume={openResume} />
+            </>
+          );
         })()}
     </div>
   );
 }
 
-function CandidateGrid({ ranked, session }: { ranked: RankedCandidate[]; session: RecruiterSession }) {
+function Highlight({ text, query }: { text: string; query: string }) {
+  return (
+    <>
+      {splitHighlight(text, query).map((seg, i) =>
+        seg.hit ? <mark key={i} className="bg-yellow-200 text-[#0E1726] rounded px-0.5">{seg.text}</mark> : <React.Fragment key={i}>{seg.text}</React.Fragment>
+      )}
+    </>
+  );
+}
+
+function CandidateGrid({ items, query, session, onOpenResume }: { items: Listed[]; query: string; session: RecruiterSession; onOpenResume: (id: string) => void }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      {ranked.map(({ candidate: c, percent, matched }) => {
+      {items.map(({ candidate: c, percent, matched }) => {
         const mailto = c.isSample ? null : buildMailto(c, session);
         const route = degreeRouteFor(c.targetRole);
+        const chips = percent === null ? c.skills : matched;
         return (
           <article key={c.id} className="bg-white border border-[#E5DFD5] rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-start justify-between gap-3">
@@ -270,35 +323,49 @@ function CandidateGrid({ ranked, session }: { ranked: RankedCandidate[]; session
                 <h3 className="font-serif text-lg font-bold">{c.fullName}</h3>
                 <p className="text-xs text-[#526173]">{c.targetRole}</p>
               </div>
-              <div className="text-right shrink-0">
-                <span className="font-serif text-2xl font-bold text-[#831843]">{percent}%</span>
-                <span className="block text-[10px] uppercase font-bold text-[#64748B]">skill match</span>
-              </div>
+              {percent !== null && (
+                <div className="text-right shrink-0">
+                  <span className="font-serif text-2xl font-bold text-[#831843]">{percent}%</span>
+                  <span className="block text-[10px] uppercase font-bold text-[#64748B]">skill match</span>
+                </div>
+              )}
             </div>
             <p className="text-[11px] text-[#64748B]">
               {c.program ? <>Programme: <b>{c.program}</b> &bull; </> : null}
               {route ? <>Degree route: {route} &bull; </> : null}
               Graduation / expected: {c.graduationYear ?? "not given"}
             </p>
+            {c.snippet && (
+              <p className="text-xs text-[#334155] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3 leading-relaxed">
+                &hellip;<Highlight text={c.snippet} query={query} />&hellip;
+              </p>
+            )}
             <div>
-              <span className="text-[10px] uppercase font-bold text-[#64748B]">Matching skills</span>
+              <span className="text-[10px] uppercase font-bold text-[#64748B]">{percent === null ? "Skills" : "Matching skills"}</span>
               <div className="flex flex-wrap gap-1.5 mt-1">
-                {matched.length > 0 ? (
-                  matched.map((m) => <span key={m} className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold">{m}</span>)
+                {chips.length > 0 ? (
+                  chips.map((m) => <span key={m} className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold"><Highlight text={m} query={query} /></span>)
                 ) : (
-                  <span className="text-[11px] text-[#64748B]">None of the listed skills match this role&apos;s core skills.</span>
+                  <span className="text-[11px] text-[#64748B]">{percent === null ? "No skills listed." : "None of the listed skills match this role's core skills."}</span>
                 )}
               </div>
             </div>
-            {mailto ? (
-              <a href={mailto} className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full">
-                <Mail className="w-3.5 h-3.5" /> Contact Candidate
-              </a>
-            ) : (
-              <button disabled className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 text-slate-500 text-xs font-bold rounded-full cursor-not-allowed" title={c.isSample ? "Sample card" : "No contact email was shared"}>
-                <Mail className="w-3.5 h-3.5" /> Contact Candidate
-              </button>
-            )}
+            <div className="flex flex-wrap gap-2">
+              {mailto ? (
+                <a href={mailto} className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full">
+                  <Mail className="w-3.5 h-3.5" /> Contact Candidate
+                </a>
+              ) : (
+                <button disabled className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 text-slate-500 text-xs font-bold rounded-full cursor-not-allowed" title={c.isSample ? "Sample card" : "No contact email was shared"}>
+                  <Mail className="w-3.5 h-3.5" /> Contact Candidate
+                </button>
+              )}
+              {c.hasResume && !c.isSample && (
+                <button onClick={() => onOpenResume(c.id)} className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#831843] text-[#831843] hover:bg-[#FAF8F5] text-xs font-bold rounded-full cursor-pointer">
+                  <FileText className="w-3.5 h-3.5" /> View resume
+                </button>
+              )}
+            </div>
           </article>
         );
       })}
