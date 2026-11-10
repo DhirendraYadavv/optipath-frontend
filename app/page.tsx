@@ -33,9 +33,9 @@ export default function Home() {
           <div className="flex items-center gap-2 sm:gap-3">
             <Link
               href="/portal"
-              className="group inline-flex items-center gap-2 px-4 sm:px-6 py-2.5 sm:py-3 rounded-full bg-linear-to-r from-indigo-600 via-[#831843] to-cyan-600 text-white text-xs sm:text-sm font-extrabold tracking-wide shadow-lg shadow-indigo-900/20 ring-2 ring-indigo-300/60 hover:shadow-xl hover:scale-[1.03] transition"
+              className="flex items-center gap-1.5 text-xs font-bold text-[#831843] hover:text-[#701237] transition cursor-pointer"
             >
-              <Handshake className="w-4 h-4 sm:w-5 sm:h-5" />
+              <Handshake className="w-3.5 h-3.5" />
               <span>Talent Gateway</span>
             </Link>
             <button

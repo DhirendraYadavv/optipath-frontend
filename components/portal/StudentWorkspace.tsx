@@ -3,6 +3,7 @@
 import React, { useMemo, useState } from "react";
 import { FileText, Loader2, Lock } from "lucide-react";
 import RoleSelect from "@/components/RoleSelect";
+import AtsDownload from "@/components/portal/AtsDownload";
 import AtsReportView from "@/components/portal/AtsReportView";
 import GapReportView from "@/components/portal/GapReportView";
 import TalentOptIn from "@/components/portal/TalentOptIn";
@@ -149,6 +150,7 @@ export default function StudentWorkspace({ student }: { student: StoredStudent |
         ) : (
           <>
             {ats && <AtsReportView report={ats} />}
+            {ats && <AtsDownload text={text} details={{ fullName: d.fullName, email: d.email, phone: d.phone }} role={d.targetRole} beforeScore={ats.score} />}
             {gaps && gaps.hasInput && <GapReportView report={gaps} role={d.targetRole} showPlans={student !== null} />}
           </>
         )}
@@ -161,6 +163,7 @@ export default function StudentWorkspace({ student }: { student: StoredStudent |
           file={file}
           skills={foundSkills}
           program={student?.program ?? ""}
+          atsScore={ats?.score}
         />
       )}
     </div>

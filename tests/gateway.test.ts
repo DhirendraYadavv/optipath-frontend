@@ -29,3 +29,12 @@ test("card copy does not claim things the site does not do", () => {
   const text = JSON.stringify([RECRUITER_CARD, STUDENT_CARD, GATEWAY_METRICS]).toLowerCase();
   for (const banned of ["semantic", "pre-screened", "zero-mock", "calibrated"]) assert.ok(!text.includes(banned), banned);
 });
+
+import { linkedInJobsUrl } from "@/lib/careerResources";
+
+test("24-hour job link is India-wide and limited to the past day", () => {
+  const u = new URL(linkedInJobsUrl("Frontend Developer (React / Next.js)"));
+  assert.equal(u.searchParams.get("location"), "India");
+  assert.equal(u.searchParams.get("f_TPR"), "r86400");
+  assert.equal(u.searchParams.get("keywords"), "Frontend Developer");
+});

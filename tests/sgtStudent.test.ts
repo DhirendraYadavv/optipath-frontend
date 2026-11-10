@@ -57,3 +57,20 @@ test("unknown programme yields an empty view without throwing", () => {
   assert.equal(v.program, null);
   assert.equal(v.upcoming.length, 0);
 });
+
+import { SGT_PROGRAMS } from "@/data/sgtCurriculum";
+
+test("official curriculum: every semester has courses, codes match real titles, totals follow the duration", () => {
+  for (const [k, p] of Object.entries(SGT_PROGRAMS)) {
+    const sems = Object.keys(p.semesters).map(Number);
+    assert.equal(Math.max(...sems), p.totalSemesters, k);
+    for (const s of sems) assert.ok(p.semesters[s].length >= 3, `${k} sem ${s}`);
+    const all = new Set(Object.values(p.semesters).flat());
+    for (const [title, code] of Object.entries(p.courseCodes ?? {})) {
+      assert.ok(all.has(title), `${k}: code ${code} points at a title not in the syllabus`);
+      assert.match(code, /^OL\d{6}$/);
+    }
+  }
+  assert.equal(SGT_PROGRAMS.bcom.semesters[6].length, 5);
+  assert.equal(SGT_PROGRAMS.bca.courseCodes?.["Java Programming"], "OL030602");
+});

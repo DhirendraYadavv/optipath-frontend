@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { Briefcase, Building2, Cpu, ExternalLink, Lock, X } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
 import { detectRoleFamily } from "@/lib/skillMatch";
-import { CITIES, employersFor, linkedInJobsUrl, projectIdeasFor } from "@/lib/careerResources";
+import { employersFor, linkedInJobsUrl, projectIdeasFor } from "@/lib/careerResources";
 
 interface CareerActionsProps {
   role: string;
@@ -14,7 +14,6 @@ interface CareerActionsProps {
 
 export default function CareerActions({ role, showProjects = true }: CareerActionsProps) {
   const { user, openSignIn } = useAuth();
-  const [city, setCity] = useState<string>("India");
   const [showCompanies, setShowCompanies] = useState(false);
   const [showProjectsModal, setShowProjectsModal] = useState(false);
 
@@ -67,26 +66,15 @@ export default function CareerActions({ role, showProjects = true }: CareerActio
               {locked && <Lock className="w-3.5 h-3.5 text-white/80" />}
             </div>
             <h4 className="font-serif font-bold text-xs">Openings in the last 24 hours</h4>
-            <p className="text-[11px] text-white/80">Opens LinkedIn, filtered to the past 24 hours.</p>
+            <p className="text-[11px] text-white/80">Opens LinkedIn, India-wide, filtered to the past 24 hours.</p>
           </div>
           <div className="flex items-center gap-2">
-            <label className="sr-only" htmlFor="job-city">City</label>
-            <select
-              id="job-city"
-              value={city}
-              onChange={(e) => setCity(e.target.value)}
-              className="flex-1 min-w-0 px-2 py-1.5 rounded-lg text-[11px] text-[#0E1726] bg-white outline-none"
-            >
-              {CITIES.map((c) => (
-                <option key={c} value={c}>{c === "India" ? "All India" : c}</option>
-              ))}
-            </select>
             <button
               type="button"
               onClick={guard("Sign in to open fresh job listings for your goal.", () =>
-                window.open(linkedInJobsUrl(role, city), "_blank", "noopener,noreferrer")
+                window.open(linkedInJobsUrl(role), "_blank", "noopener,noreferrer")
               )}
-              className="px-3 py-1.5 bg-white text-[#831843] font-bold text-[11px] rounded-lg cursor-pointer hover:bg-rose-50 whitespace-nowrap"
+              className="w-full px-3 py-1.5 bg-white text-[#831843] font-bold text-[11px] rounded-lg cursor-pointer hover:bg-rose-50 whitespace-nowrap"
             >
               Apply now &rarr;
             </button>

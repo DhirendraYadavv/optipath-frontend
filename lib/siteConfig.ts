@@ -20,6 +20,8 @@ export const RECRUITER_VERIFY_URL = `${API_URL}/recruiter/verify`;
 export const TALENT_SEARCH_URL = `${API_URL}/talent/search`;
 /** GET {TALENT_RESUME_URL}/{candidateId} returns the resume file for a verified recruiter. */
 export const TALENT_RESUME_URL = `${API_URL}/talent/resume`;
+/** GET with a placement-staff Google token: anonymous cohort numbers. */
+export const PLACEMENT_SUMMARY_URL = `${API_URL}/placement/summary`;
 
 export const SGT_ONLINE_HOME = "https://sgtonline.ac.in/";
 export const SGT_ONLINE_APPLY = "https://sgtonline.ac.in/apply/";

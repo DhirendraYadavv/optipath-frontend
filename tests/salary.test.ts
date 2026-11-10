@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { SALARY_ROWS, ENTRY_BANDS, TIER2_FACTOR, estimateSalary, typicalDegree } from "@/lib/salaryEstimatorData";
+import { SALARY_ROWS, ROLE_BENCHMARKS, DOMAIN_BENCHMARKS, TIER2_FACTOR, estimateSalary, formatRangeLpa, typicalDegree } from "@/lib/salaryEstimatorData";
 import { GOAL_ROLES, GOAL_ROLE_TITLES } from "@/data/goalRoles";
 import { detectRoleFamily } from "@/lib/skillMatch";
 
@@ -12,36 +12,62 @@ test("every reference salary row is traceable and sane", () => {
   }
 });
 
-test("entry bands are tight, belong to goal roles and are not blended", () => {
-  for (const b of ENTRY_BANDS) {
-    assert.ok(GOAL_ROLE_TITLES.includes(b.title), b.title);
-    assert.ok(b.max > b.min && b.max - b.min <= 2.5, b.title);
-    assert.equal(b.experience, "0 to 3 years");
+test("role benchmarks belong to goal roles and are sane", () => {
+  for (const b of ROLE_BENCHMARKS) {
+    assert.ok(b.max > b.min, b.label);
+    assert.ok(b.median >= b.min && b.median <= b.max, b.label);
+    for (const r of b.roles) assert.ok(GOAL_ROLE_TITLES.includes(r), r);
   }
+  const claimed = ROLE_BENCHMARKS.flatMap((b) => b.roles);
+  assert.equal(new Set(claimed).size, claimed.length, "a role is claimed by two benchmarks");
 });
 
-test("owner-specified bands", () => {
-  const get = (role: string) => estimateSalary(role, "Mumbai").range;
-  assert.deepEqual(get("Software Engineer / SDE 1"), { min: 5.5, max: 7.2 });
-  assert.deepEqual(get("Backend Developer (Python / Java / Node.js)"), { min: 5.5, max: 7.2 });
-  assert.deepEqual(get("Data Analyst"), { min: 4, max: 5.5 });
-  assert.deepEqual(get("Financial Analyst"), { min: 3.8, max: 5 });
-  assert.deepEqual(get("Human Resources (HR) Generalist / Talent Acquisition"), { min: 3.5, max: 4.8 });
+test("owner-specified role benchmarks", () => {
+  const get = (role: string) => estimateSalary(role, "Mumbai");
+  assert.deepEqual(get("Software Engineer / SDE 1").range, { min: 3.6, max: 12 });
+  assert.equal(get("Software Engineer / SDE 1").median, 6.5);
+  assert.deepEqual(get("Mobile App Developer (Android / Flutter)").range, { min: 3.2, max: 9.5 });
+  assert.deepEqual(get("Backend Developer (Python / Java / Node.js)").range, { min: 3.6, max: 11 });
+  assert.deepEqual(get("Data Scientist").range, { min: 4.2, max: 14 });
+  assert.deepEqual(get("Machine Learning Engineer").range, { min: 4.2, max: 14 });
+  assert.deepEqual(get("SEO Specialist").range, { min: 2.5, max: 6 });
+  assert.deepEqual(get("Human Resources (HR) Generalist / Talent Acquisition").range, { min: 2.5, max: 5.5 });
+  assert.deepEqual(get("Operations Analyst").range, { min: 3, max: 7.5 });
 });
 
-test("Tier-2 city applies 0.8x to the band and says so", () => {
+test("Tier-2 city applies 0.8x to the range and the median and says so", () => {
   const r = estimateSalary("Data Analyst", "Jaipur");
   assert.equal(r.basis, "entry-band-tier2");
   assert.equal(r.factorApplied, TIER2_FACTOR);
-  assert.deepEqual(r.range, { min: 3.2, max: 4.4 });
-  assert.deepEqual(estimateSalary("Software Engineer / SDE 1", "Indore").range, { min: 4.4, max: 5.8 });
+  assert.deepEqual(r.range, { min: 2.6, max: 6.8 });
+  assert.equal(r.median, 4);
 });
 
-test("goal roles without a band show no figure instead of a guess", () => {
-  const r = estimateSalary("Audit Associate", "Hyderabad");
-  assert.equal(r.range, null);
-  assert.equal(r.basis, "none");
-  assert.equal(r.degree, "B.Com (Hons) / MBA Finance / M.Com");
+test("every goal role shows a range: an exact row or its domain fallback", () => {
+  for (const r of GOAL_ROLES) {
+    const e = estimateSalary(r.title, "Mumbai");
+    assert.ok(e.range && e.band, r.title);
+    assert.ok(e.range.min > 0 && e.range.max > e.range.min, r.title);
+  }
+});
+
+test("roles without an exact row use the domain fallback and have no median", () => {
+  const tech = estimateSalary("Python Developer", "Mumbai");
+  assert.deepEqual(tech.range, DOMAIN_BENCHMARKS["Tech / Engineering"]);
+  assert.equal(tech.band?.kind, "domain");
+  assert.equal(tech.median, null);
+  assert.deepEqual(estimateSalary("Data Engineer", "Mumbai").range, { min: 3.8, max: 9 });
+  assert.deepEqual(estimateSalary("Audit Associate", "Mumbai").range, { min: 3.2, max: 7 });
+  assert.deepEqual(estimateSalary("Sales Executive", "Mumbai").range, { min: 3, max: 6.5 });
+  assert.deepEqual(estimateSalary("Content Marketing Executive", "Mumbai").range, { min: 2.8, max: 5.5 });
+});
+
+test("an unknown title outside the goal list gets no guess", () => {
+  assert.equal(estimateSalary("Underwater Basket Weaver", "Mumbai").range, null);
+});
+
+test("range text uses the requested format", () => {
+  assert.equal(formatRangeLpa({ min: 3.6, max: 12 }), "\u20b93.6L \u2013 \u20b912.0L LPA");
 });
 
 test("SDE 1 still points at the Software Engineer reference row with its alias note", () => {
@@ -86,4 +112,20 @@ test("degree rules by family", () => {
 
 test("unknown city is treated as Tier-2", () => {
   assert.equal(estimateSalary("Data Analyst", "Nowhere").city.tier, "tier2");
+});
+
+import { ambitionBoxSearchUrl } from "@/lib/salaryEstimatorData";
+
+test("AmbitionBox link encodes the role title exactly as specified", () => {
+  assert.equal(
+    ambitionBoxSearchUrl("Frontend Developer (React / Next.js)"),
+    "https://www.ambitionbox.com/salaries?search=Frontend%20Developer%20(React%20%2F%20Next.js)",
+  );
+});
+
+test("every published row is sourced and the reported range is sane", () => {
+  for (const r of SALARY_ROWS) {
+    assert.match(r.sourceUrl, /^https:\/\/(www\.)?ambitionbox\.com\//);
+    assert.ok(r.min > 0 && r.max > r.min, r.sourceTitle);
+  }
 });

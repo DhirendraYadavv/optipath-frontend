@@ -13,9 +13,11 @@ interface Props {
   /** Skill labels found in the resume, sent so recruiters can see them. */
   skills: string[];
   program: string;
+  /** Checklist score, only when the student is signed in and the check ran. */
+  atsScore?: number;
 }
 
-export default function TalentOptIn({ fields, file, skills, program }: Props) {
+export default function TalentOptIn({ fields, file, skills, program, atsScore }: Props) {
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<UploadErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -37,7 +39,7 @@ export default function TalentOptIn({ fields, file, skills, program }: Props) {
       const res = await fetch(TALENT_UPLOAD_URL, {
         method: "POST",
         headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: buildUploadFormData(all, file, file.name, { skills: JSON.stringify(skills), program, source: "student-portal" }),
+        body: buildUploadFormData(all, file, file.name, { skills: JSON.stringify(skills), program, source: "student-portal", ...(atsScore === undefined ? {} : { atsScore: String(atsScore) }) }),
         signal: controller.signal,
       });
       if (res.ok) {

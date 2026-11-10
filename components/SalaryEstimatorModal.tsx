@@ -1,11 +1,10 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { ExternalLink, Info, X } from "lucide-react";
+import { Info, X } from "lucide-react";
 import RoleSearch from "@/components/RoleSearch";
-import { CITIES, TIER2_FACTOR, estimateSalary } from "@/lib/salaryEstimatorData";
+import { CITIES, TIER2_FACTOR, ambitionBoxSearchUrl, estimateSalary, formatRangeLpa, lakh } from "@/lib/salaryEstimatorData";
 
-const fmt = (n: number) => `₹${n % 1 === 0 ? n.toFixed(0) : n.toFixed(1)}`;
 
 export default function SalaryEstimatorModal({ onClose }: { onClose: () => void }) {
   const [role, setRole] = useState("");
@@ -56,11 +55,12 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
                     Entry-level estimate, 0 to 3 years (LPA)
                   </span>
                   {result.range ? (
-                    <span className="font-serif text-2xl font-bold text-[#831843] block mt-0.5">
-                      {fmt(result.range.min)} to {fmt(result.range.max)}
-                    </span>
+                    <>
+                      <span className="font-serif text-2xl font-bold text-emerald-800 block mt-0.5">{formatRangeLpa(result.range)}</span>
+                      {result.median !== null && <span className="text-[11px] text-[#526173] block">Typical (median): {lakh(result.median)}</span>}
+                    </>
                   ) : (
-                    <span className="text-sm font-semibold text-[#526173] block mt-1">No entry-level estimate for this role yet</span>
+                    <span className="text-sm font-semibold text-[#526173] block mt-1">Choose one of the listed job profiles to see a range.</span>
                   )}
                 </div>
                 <div>
@@ -76,33 +76,28 @@ export default function SalaryEstimatorModal({ onClose }: { onClose: () => void 
                   <p className="flex items-start gap-1.5">
                     <Info className="w-3.5 h-3.5 shrink-0 mt-0.5 text-[#831843]" />
                     <span>
-                      <b>OptiPath estimate</b> for {result.band.experience} of experience. It is not a published statistic.
+                      <b>OptiPath benchmark estimate</b> for {result.band.experience} of experience, based on{" "}
+                      {result.band.kind === "role" ? <>the &ldquo;{result.band.title}&rdquo; benchmark</> : <>the broader {result.band.title} benchmark, because we have no role-specific figure</>}. It is not a published statistic.
                     </span>
                   </p>
-                  {result.row?.aliasNote && <p><b>Note:</b> {result.row.aliasNote}</p>}
                   {result.basis === "entry-band-tier2" && (
                     <p>
-                      Estimated regional adjustment factor ({TIER2_FACTOR}x of the Tier-1 band). This is an assumption, not a measured figure for {result.city.name}.
+                      Estimated regional adjustment factor ({TIER2_FACTOR}x of the Tier-1 figures). This is an assumption, not a measured figure for {result.city.name}.
                     </p>
                   )}
-                  {result.basis === "entry-band" && <p>The same band is shown for every Tier-1 city; we have no city-specific figure.</p>}
-                  {result.row && (
-                    <p>
-                      For reference, {result.row.source} publishes {fmt(result.row.min)} to {fmt(result.row.max)} LPA for &ldquo;{result.row.sourceTitle}&rdquo; across{" "}
-                      {result.row.experience} of experience (page date: {result.row.sourceDate ?? "not shown"}, captured {result.row.capturedOn}).{" "}
-                      <a href={result.row.sourceUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-bold text-[#831843] hover:underline">
-                        Open source page <ExternalLink className="w-3 h-3" />
-                      </a>
-                    </p>
-                  )}
+                  {result.basis === "entry-band" && <p>The same Tier-1 figures are shown for every Tier-1 city; we have no city-specific figure.</p>}
+                  <p>Use the AmbitionBox link below to compare with what employers and employees report there.</p>
                 </div>
               )}
 
-              {!result.range && (
-                <p className="text-[11px] text-[#526173] leading-relaxed bg-white border border-[#EAE4D9] rounded-xl p-3">
-                  We only show salary figures we can trace to a source page, and this role family has none yet. The degree guidance above still applies.
-                </p>
-              )}
+              <a
+                href={ambitionBoxSearchUrl(role)}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[11px] font-bold text-[#831843] hover:underline"
+              >
+                Open the source page on AmbitionBox ↗
+              </a>
             </div>
           )}
 

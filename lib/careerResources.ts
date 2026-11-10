@@ -86,15 +86,10 @@ export function employersFor(family: RoleFamily): Employer[] {
   }
 }
 
-export const CITIES = [
-  "India", "Bengaluru", "Hyderabad", "Pune", "Mumbai", "Delhi NCR", "Gurugram", "Noida", "Chennai",
-  "Jaipur", "Indore", "Lucknow", "Chandigarh",
-] as const;
-
-/** LinkedIn job search limited to jobs posted in the last 24 hours (f_TPR=r86400). */
-export function linkedInJobsUrl(role: string, city: string = "India"): string {
+/** LinkedIn job search, India-wide, limited to jobs posted in the last 24 hours (f_TPR=r86400). */
+export function linkedInJobsUrl(role: string): string {
   const keywords = role.replace(/\s*\([^)]*\)\s*/g, " ").replace(/\s+/g, " ").trim() || role;
-  const params = new URLSearchParams({ keywords, location: city || "India", f_TPR: "r86400" });
+  const params = new URLSearchParams({ keywords, location: "India", f_TPR: "r86400" });
   return "https://www.linkedin.com/jobs/search/?" + params.toString();
 }
 

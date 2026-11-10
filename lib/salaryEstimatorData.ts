@@ -9,7 +9,7 @@
 //    experience levels. AmbitionBox does not publish a median on these pages, so none is shown.
 //  - The page snapshots we captured were dated March 2025 or showed no date, so they are NOT "Q1 2026".
 //  - SALARY_ROWS are all-experience published ranges and are shown only as a REFERENCE. The headline figure the
-//    estimator shows is the entry-level band in ENTRY_BANDS below, which is a PROJECT-OWNER ESTIMATE, not a
+//    estimator shows is the entry-level benchmark in ROLE_BENCHMARKS / DOMAIN_BENCHMARKS below, which is a PROJECT-OWNER FIGURE, not a
 //    published statistic. A role with no entry band shows no headline figure.
 
 import { RoleFamily, detectRoleFamily } from "@/lib/skillMatch";
@@ -195,28 +195,74 @@ export const SALARY_ROWS: SalaryRow[] = [
 ];
 
 // ---------------------------------------------------------------------------
-// Entry-level bands (0 to 3 years) - PROJECT-OWNER ESTIMATES
+// Entry-level benchmarks (0 to 3 years, Tier-1 LPA) - PROJECT-OWNER FIGURES
 // ---------------------------------------------------------------------------
 export interface EntryBand {
-  /** Exact goal-role title from data/goalRoles.ts. */
+  /** Label shown on the card: a role title, or the domain name for a fallback band. */
   title: string;
   min: number;
   max: number;
+  /** Typical (median) figure, when the owner gave one. */
+  median: number | null;
   experience: string;
+  /** "role" = exact benchmark row. "domain" = broader family fallback. */
+  kind: "role" | "domain";
+}
+
+interface RoleBenchmark {
+  label: string;
+  min: number;
+  max: number;
+  median: number;
+  /** Goal-role titles (data/goalRoles.ts) this benchmark applies to. */
+  roles: string[];
 }
 
 /**
- * Set by the project owner on 2026-11-05 as realistic entry-to-mid bands. They are NOT copied from a published
- * source: the published ranges we could read for the same titles are far wider (see SALARY_ROWS). Shown on
- * screen as "OptiPath estimate". To add a role, add a line here; do not guess.
+ * Supplied by the project owner on 2026-11-10. We could not read the AmbitionBox pages behind them, so on screen
+ * they are labelled "OptiPath benchmark estimate", never "published by AmbitionBox". The AmbitionBox link under
+ * the card lets the reader compare. To change a figure, edit it here and its test.
  */
-export const ENTRY_BANDS: EntryBand[] = [
-  { title: "Software Engineer / SDE 1", min: 5.5, max: 7.2, experience: "0 to 3 years" },
-  { title: "Backend Developer (Python / Java / Node.js)", min: 5.5, max: 7.2, experience: "0 to 3 years" },
-  { title: "Data Analyst", min: 4.0, max: 5.5, experience: "0 to 3 years" },
-  { title: "Financial Analyst", min: 3.8, max: 5.0, experience: "0 to 3 years" },
-  { title: "Human Resources (HR) Generalist / Talent Acquisition", min: 3.5, max: 4.8, experience: "0 to 3 years" },
+export const ROLE_BENCHMARKS: RoleBenchmark[] = [
+  { label: "Mobile App Developer (Android / Flutter)", min: 3.2, max: 9.5, median: 5.2, roles: ["Mobile App Developer (Android / Flutter)"] },
+  { label: "Software Engineer / SDE 1", min: 3.6, max: 12.0, median: 6.5, roles: ["Software Engineer / SDE 1"] },
+  { label: "Frontend Developer (React / Next.js)", min: 3.0, max: 9.0, median: 5.0, roles: ["Frontend Developer (React / Next.js)"] },
+  { label: "Backend Developer (Python / Java / Go)", min: 3.6, max: 11.0, median: 6.0, roles: ["Backend Developer (Python / Java / Node.js)"] },
+  { label: "Full Stack Developer", min: 3.5, max: 10.5, median: 5.8, roles: ["Full Stack Developer"] },
+  { label: "DevOps / Cloud Engineer", min: 4.0, max: 12.0, median: 6.5, roles: ["Cloud / DevOps Engineer"] },
+  { label: "Data Analyst", min: 3.2, max: 8.5, median: 5.0, roles: ["Data Analyst"] },
+  { label: "Data Scientist / ML Engineer", min: 4.2, max: 14.0, median: 7.2, roles: ["Data Scientist", "Machine Learning Engineer"] },
+  { label: "Cyber Security Analyst", min: 3.5, max: 9.5, median: 5.5, roles: ["Cybersecurity / Information Security Analyst"] },
+  { label: "Financial Analyst", min: 3.5, max: 8.8, median: 5.2, roles: ["Financial Analyst"] },
+  { label: "Business Analyst", min: 3.5, max: 9.0, median: 5.5, roles: ["Business Analyst"] },
+  { label: "Digital Marketing / SEO Specialist", min: 2.5, max: 6.0, median: 3.8, roles: ["Digital Marketing Executive / Specialist", "SEO Specialist"] },
+  { label: "HR Executive / Analyst", min: 2.5, max: 5.5, median: 3.6, roles: ["HR Executive", "Human Resources (HR) Generalist / Talent Acquisition"] },
+  { label: "Operations / Supply Chain Analyst", min: 3.0, max: 7.5, median: 4.5, roles: ["Operations & Supply Chain Executive", "Operations Analyst"] },
 ];
+
+export type Domain = "Tech / Engineering" | "Data & AI" | "Finance & Accounting" | "Management & Operations" | "Marketing & Media";
+
+/** Broader benchmarks used when a role has no exact row above. */
+export const DOMAIN_BENCHMARKS: Record<Domain, { min: number; max: number }> = {
+  "Tech / Engineering": { min: 3.5, max: 8.0 },
+  "Data & AI": { min: 3.8, max: 9.0 },
+  "Finance & Accounting": { min: 3.2, max: 7.0 },
+  "Management & Operations": { min: 3.0, max: 6.5 },
+  "Marketing & Media": { min: 2.8, max: 5.5 },
+};
+
+const DOMAIN_BY_FAMILY: Partial<Record<RoleFamily, Domain>> = {
+  sde: "Tech / Engineering", backend: "Tech / Engineering", frontend: "Tech / Engineering", fullstack: "Tech / Engineering",
+  devops: "Tech / Engineering", security: "Tech / Engineering", mobile: "Tech / Engineering", qa: "Tech / Engineering", blockchain: "Tech / Engineering",
+  data_ai: "Data & AI", data_eng: "Data & AI", bizanalytics: "Data & AI",
+  finance: "Finance & Accounting",
+  marketing: "Marketing & Media",
+  hr: "Management & Operations", operations: "Management & Operations", business: "Management & Operations", generic: "Management & Operations",
+};
+
+export function domainFor(role: string): Domain {
+  return DOMAIN_BY_FAMILY[detectRoleFamily(role)] ?? "Management & Operations";
+}
 
 // ---------------------------------------------------------------------------
 // Cities
@@ -277,11 +323,13 @@ export interface SalaryEstimate {
   family: RoleFamily;
   city: City;
   degree: string | null;
-  /** Closest published all-experience row, for reference only. */
+  /** Closest published all-experience AmbitionBox row we captured. Kept for reference; not shown as the headline. */
   row: SalaryRow | null;
   band: EntryBand | null;
-  /** Headline range in LPA. Null when the role has no entry band. */
+  /** Headline range in LPA, after any Tier-2 adjustment. */
   range: { min: number; max: number } | null;
+  /** Typical figure in LPA, after any Tier-2 adjustment. Null for domain fallbacks. */
+  median: number | null;
   basis: "entry-band" | "entry-band-tier2" | "none";
   factorApplied: number | null;
   /** True when the role is one of the SGT goal roles. */
@@ -290,24 +338,44 @@ export interface SalaryEstimate {
 
 const round1 = (n: number) => Math.round(n * 10) / 10;
 
+/** "3.6" -> "₹3.6L". One decimal, always. */
+export const lakh = (n: number) => `₹${n.toFixed(1)}L`;
+export const formatRangeLpa = (r: { min: number; max: number }) => `${lakh(r.min)} \u2013 ${lakh(r.max)} LPA`;
+
+function bandFor(role: string): EntryBand | null {
+  const exact = ROLE_BENCHMARKS.find((b) => b.roles.includes(role));
+  if (exact) return { title: exact.label, min: exact.min, max: exact.max, median: exact.median, experience: "0 to 3 years", kind: "role" };
+  const family = detectRoleFamily(role);
+  if (family === "generic" && !GOAL_ROLE_TITLES.includes(role)) return null; // an unknown title gets no guess
+  const domain = domainFor(role);
+  const d = DOMAIN_BENCHMARKS[domain];
+  return { title: domain, min: d.min, max: d.max, median: null, experience: "0 to 3 years", kind: "domain" };
+}
+
 export function estimateSalary(role: string, cityName: string): SalaryEstimate {
   const family = detectRoleFamily(role);
   const city = CITIES.find((c) => c.name === cityName) ?? CITIES[CITIES.length - 1];
   const row = SALARY_ROWS.find((r) => r.families.includes(family)) ?? null;
-  const band = ENTRY_BANDS.find((b) => b.title === role) ?? null;
+  const band = bandFor(role);
   const degree = typicalDegree(family);
   const isGoalRole = GOAL_ROLE_TITLES.includes(role);
   const base = { family, city, degree, row, band, isGoalRole };
 
-  if (!band) return { ...base, range: null, basis: "none", factorApplied: null };
+  if (!band) return { ...base, range: null, median: null, basis: "none", factorApplied: null };
 
   if (city.tier === "tier2") {
     return {
       ...base,
       range: { min: round1(band.min * TIER2_FACTOR), max: round1(band.max * TIER2_FACTOR) },
+      median: band.median === null ? null : round1(band.median * TIER2_FACTOR),
       basis: "entry-band-tier2",
       factorApplied: TIER2_FACTOR,
     };
   }
-  return { ...base, range: { min: band.min, max: band.max }, basis: "entry-band", factorApplied: null };
+  return { ...base, range: { min: band.min, max: band.max }, median: band.median, basis: "entry-band", factorApplied: null };
+}
+
+/** AmbitionBox salaries search for a role title. Opens the site's own results; we do not copy figures from it. */
+export function ambitionBoxSearchUrl(roleTitle: string): string {
+  return `https://www.ambitionbox.com/salaries?search=${encodeURIComponent(roleTitle)}`;
 }

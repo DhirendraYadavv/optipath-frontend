@@ -6,6 +6,8 @@ export interface CourseData {
   totalSemesters: number;
   description: string;
   semesters: Record<number, string[]>;
+  /** Official CDOE course code by course title (from the program guides). Present only where verified. */
+  courseCodes?: Record<string, string>;
   careerRoles: string[];
 }
 
@@ -15,7 +17,7 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
     name: "Bachelor of Computer Applications (BCA)",
     code: "BCA",
     duration: "3 Years (6 Semesters)",
-    totalSemesters: 4, // Current mapped horizon
+    totalSemesters: 6,
     description: "Foundational software development, systems engineering, web architectures, and algorithms.",
     semesters: {
       1: [
@@ -42,19 +44,71 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
       ],
       3: [
         "Object Oriented Programming using C++",
+        "Storage Technology Foundation",
+        "Object Oriented Programming using C++ LAB",
+        "Storage Technology Foundation LAB",
         "Probability and Statistics",
-        "Storage Technology Foundation"
+        "Digital & Social Media Marketing",
+        "Creative English",
+        "Competitive Programming LAB",
+        "Internship - I"
       ],
       4: [
         "Data Structure and Algorithms using C",
         "Operating System",
+        "Data Structures & Algorithms using C LAB",
+        "Operating System LAB",
         "Sustainable Engineering",
+        "Campus to Corporate",
+        "Corporate Governance & CSR",
         "Supervised Machine Learning",
         "Data Analysis using MS-Excel",
         "PHP and MySQL",
         "Principles of Cyber Security",
         "Virtualization Concepts"
+      ],
+      5: [
+        "Database Management Systems",
+        "Computer Organization & Architecture",
+        "Database Management Systems LAB",
+        "Internet of Things",
+        "Internet of Things LAB",
+        "Internship - II"
+      ],
+      6: [
+        "Software Engineering",
+        "Java Programming",
+        "Java Programming LAB",
+        "Human Resource Management"
       ]
+    },
+    courseCodes: {
+      "Object Oriented Programming using C++": "OL030301",
+      "Storage Technology Foundation": "OL030302",
+      "Object Oriented Programming using C++ LAB": "OL030311",
+      "Storage Technology Foundation LAB": "OL030312",
+      "Probability and Statistics": "OL030341",
+      "Digital & Social Media Marketing": "OL010376",
+      "Creative English": "OL010371",
+      "Competitive Programming LAB": "OL030381",
+      "Internship - I": "OL010396",
+      "Data Structure and Algorithms using C": "OL030401",
+      "Operating System": "OL030402",
+      "Data Structures & Algorithms using C LAB": "OL030411",
+      "Operating System LAB": "OL030412",
+      "Sustainable Engineering": "OL030441",
+      "Campus to Corporate": "OL010471",
+      "Corporate Governance & CSR": "OL010486",
+      "Database Management Systems": "OL030501",
+      "Computer Organization & Architecture": "OL030502",
+      "Database Management Systems LAB": "OL030511",
+      "Internet of Things": "OL030541",
+      "Internet of Things LAB": "OL030551",
+      "Internship - II": "OL010596",
+      "Software Engineering": "OL030601",
+      "Java Programming": "OL030602",
+      "Java Programming LAB": "OL030612",
+      "Human Resource Management": "OL010201"
     },
     careerRoles: [
       "Full Stack Web Developer",
@@ -148,7 +202,7 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
     name: "Bachelor of Business Administration (BBA)",
     code: "BBA",
     duration: "3 Years (6 Semesters)",
-    totalSemesters: 4,
+    totalSemesters: 6,
     description: "Business operations, market strategy, leadership dynamics, finance, and corporate management.",
     semesters: {
       1: [
@@ -171,11 +225,12 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
       ],
       3: [
         "Business Economics",
+        "Cost and Management Accounting",
         "Business Research Methods",
         "Company Laws",
-        "Cost and Management Accounting",
         "Creative English: Exploring Stories, Poems, Personal Narratives",
-        "Digital and Social Media Marketing"
+        "Digital and Social Media Marketing",
+        "Internship - I"
       ],
       4: [
         "Financial Management",
@@ -186,7 +241,39 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
         "Consumer Behavior",
         "Banking, Financial Services and Insurance",
         "Training & Development"
+      ],
+      5: [
+        "Entrepreneurship Development",
+        "Operations Management",
+        "Business Analytics",
+        "Internship - II"
+      ],
+      6: [
+        "Strategic Management",
+        "Supply Chain Management",
+        "Data Visualization"
       ]
+    },
+    courseCodes: {
+      "Business Economics": "OL010301",
+      "Cost and Management Accounting": "OL020302",
+      "Business Research Methods": "OL020303",
+      "Company Laws": "OL020304",
+      "Creative English: Exploring Stories, Poems, Personal Narratives": "OL020305",
+      "Digital and Social Media Marketing": "OL020306",
+      "Internship - I": "OL010307",
+      "Financial Management": "OL020501",
+      "International Business": "OL010402",
+      "Data Analysis Using Excel": "OL020404",
+      "Campus to Corporate: Professional Communication and Workplace Skills": "OL020405",
+      "Corporate Governance and CSR": "OL020406",
+      "Entrepreneurship Development": "OL010501",
+      "Operations Management": "OL010502",
+      "Business Analytics": "OL020505",
+      "Internship - II": "OL010506",
+      "Strategic Management": "OL010601",
+      "Supply Chain Management": "OL010602",
+      "Data Visualization": "OL020605"
     },
     careerRoles: [
       "Business Development Manager",
@@ -279,7 +366,7 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
     name: "Bachelor of Commerce (B.Com)",
     code: "BCOM",
     duration: "3 Years (6 Semesters)",
-    totalSemesters: 4,
+    totalSemesters: 6,
     description: "Corporate accounting, financial audit, taxation laws, banking frameworks, and market compliance.",
     semesters: {
       1: [
@@ -301,13 +388,63 @@ export const SGT_PROGRAMS: Record<string, CourseData> = {
         "Principles of Marketing"
       ],
       3: [
-        "Corporate Accounting"
+        "Business Economics",
+        "Corporate Accounting",
+        "Business Research Methods",
+        "Company Laws",
+        "Creative English: Exploring Stories, Poems, Personal Narratives",
+        "Digital & Social Media Marketing",
+        "Internship - I"
       ],
       4: [
         "Cost Accounting",
         "Taxation Laws",
-        "Financial Markets & Services"
+        "Financial Markets & Services",
+        "Data Analysis Using Excel",
+        "Campus to Corporate: Professional Communication and Workplace Skills",
+        "Corporate Governance and CSR"
+      ],
+      5: [
+        "Financial Management",
+        "Management Accounting",
+        "Security Analysis & Portfolio Management",
+        "Goods and Service Tax (GST) & Customs Law",
+        "Business Analytics",
+        "Internship - II"
+      ],
+      6: [
+        "Financial Analysis and Reporting",
+        "Financial Derivatives",
+        "Financial Analytics",
+        "Auditing",
+        "Data Visualization"
       ]
+    },
+    courseCodes: {
+      "Business Economics": "OL010301",
+      "Corporate Accounting": "OL020301",
+      "Business Research Methods": "OL010341",
+      "Company Laws": "OL010361",
+      "Creative English: Exploring Stories, Poems, Personal Narratives": "OL010371",
+      "Digital & Social Media Marketing": "OL010376",
+      "Internship - I": "OL010396",
+      "Cost Accounting": "OL020401",
+      "Taxation Laws": "OL020402",
+      "Financial Markets & Services": "OL010523",
+      "Data Analysis Using Excel": "OL010451",
+      "Campus to Corporate: Professional Communication and Workplace Skills": "OL010471",
+      "Corporate Governance and CSR": "OL010486",
+      "Financial Management": "OL010401",
+      "Management Accounting": "OL020501",
+      "Security Analysis & Portfolio Management": "OL010524",
+      "Goods and Service Tax (GST) & Customs Law": "OL020502",
+      "Business Analytics": "OL010541",
+      "Internship - II": "OL010596",
+      "Financial Analysis and Reporting": "OL020601",
+      "Financial Derivatives": "OL020602",
+      "Financial Analytics": "OL010624",
+      "Auditing": "OL020603",
+      "Data Visualization": "OL010641"
     },
     careerRoles: [
       "Taxation & Audit Associate",
