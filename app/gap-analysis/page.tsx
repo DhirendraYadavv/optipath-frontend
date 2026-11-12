@@ -1,6 +1,7 @@
 "use client";
 
 import React, { Suspense, useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AlertTriangle, ArrowLeft, ArrowRight, CheckCircle2, GraduationCap, Info, Lock, Sparkles } from "lucide-react";
@@ -196,9 +197,14 @@ function GapAnalysisContent() {
             {/* B. Programmes */}
             {evaluation && (
               <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-4">
-                <div className="flex items-center gap-2 pb-3 border-b border-[#EAE4D9]">
-                  <GraduationCap className="w-5 h-5 text-[#831843]" />
-                  <h3 className="font-serif font-bold text-lg">SGT Online programmes for your level</h3>
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#EAE4D9]">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <GraduationCap className="w-5 h-5 text-[#831843] shrink-0" />
+                    <h3 className="font-serif font-bold text-lg">SGT Online programmes for your level</h3>
+                  </div>
+                  <div className="relative w-28 sm:w-36 h-10 shrink-0">
+                    <Image src="/sgt-online-logo.png" alt="SGT Online University" fill sizes="144px" className="object-contain object-right" />
+                  </div>
                 </div>
 
                 {evaluation.note && <p className="text-xs text-[#526173] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3">{evaluation.note}</p>}

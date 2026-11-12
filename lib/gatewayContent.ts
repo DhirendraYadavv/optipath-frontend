@@ -28,7 +28,7 @@ export const RECRUITER_CARD: GatewayCard = {
     "Sign in with your official company email only. Free email domains such as Gmail and Yahoo are blocked.",
     "Browse uploaded resumes and search them by keyword.",
     "Optionally narrow by career track and rank candidates by skill match.",
-    "One-click outreach to opted-in candidates through a mailto: link.",
+    "Open the resumes that candidates chose to share with verified recruiters.",
   ],
   cta: "Enter Recruiter Portal",
 };

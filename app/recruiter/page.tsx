@@ -2,7 +2,7 @@
 
 import React, { useRef, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, ArrowLeft, FileText, Loader2, Mail, Search, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArrowLeft, FileText, Loader2, Search, ShieldCheck } from "lucide-react";
 import RoleSelect from "@/components/RoleSelect";
 import { RECRUITER_VERIFY_URL, TALENT_RESUME_URL, TALENT_SEARCH_URL } from "@/lib/siteConfig";
 import { clearRecruiterSession, saveRecruiterSession, useRecruiterSession } from "@/lib/recruiterStore";
@@ -12,7 +12,6 @@ import {
   RecruiterFields,
   RecruiterSession,
   SAMPLE_CANDIDATES,
-  buildMailto,
   degreeRouteFor,
   splitHighlight,
   normalizeCompanyUrl,
@@ -276,7 +275,7 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
             <AlertTriangle className="w-4 h-4 shrink-0 mt-0.5" />
             <span>The Talent Pool service cannot be reached right now, so no real resumes are shown. Below is a <b>sample layout only</b>. These are not real people.</span>
           </div>
-          <CandidateGrid items={listed(SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: state.role || c.targetRole })), state.role)} query={state.query} session={session} onOpenResume={openResume} />
+          <CandidateGrid items={listed(SAMPLE_CANDIDATES.map((c) => ({ ...c, targetRole: state.role || c.targetRole })), state.role)} query={state.query} onOpenResume={openResume} />
         </>
       )}
 
@@ -291,7 +290,7 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
                 {items.length} resume{items.length === 1 ? "" : "s"}{state.query ? ` for "${state.query}"` : ""}
                 {items.length > PAGE_LIMIT ? `. Showing the first ${PAGE_LIMIT}; narrow the search to see others.` : ""}
               </p>
-              <CandidateGrid items={items.slice(0, PAGE_LIMIT)} query={state.query} session={session} onOpenResume={openResume} />
+              <CandidateGrid items={items.slice(0, PAGE_LIMIT)} query={state.query} onOpenResume={openResume} />
             </>
           );
         })()}
@@ -309,11 +308,10 @@ function Highlight({ text, query }: { text: string; query: string }) {
   );
 }
 
-function CandidateGrid({ items, query, session, onOpenResume }: { items: Listed[]; query: string; session: RecruiterSession; onOpenResume: (id: string) => void }) {
+function CandidateGrid({ items, query, onOpenResume }: { items: Listed[]; query: string; onOpenResume: (id: string) => void }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
       {items.map(({ candidate: c, percent, matched }) => {
-        const mailto = c.isSample ? null : buildMailto(c, session);
         const route = degreeRouteFor(c.targetRole);
         const chips = percent === null ? c.skills : matched;
         return (
@@ -350,22 +348,13 @@ function CandidateGrid({ items, query, session, onOpenResume }: { items: Listed[
                 )}
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              {mailto ? (
-                <a href={mailto} className="inline-flex items-center gap-1.5 px-4 py-2 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full">
-                  <Mail className="w-3.5 h-3.5" /> Contact Candidate
-                </a>
-              ) : (
-                <button disabled className="inline-flex items-center gap-1.5 px-4 py-2 bg-slate-200 text-slate-500 text-xs font-bold rounded-full cursor-not-allowed" title={c.isSample ? "Sample card" : "No contact email was shared"}>
-                  <Mail className="w-3.5 h-3.5" /> Contact Candidate
-                </button>
-              )}
-              {c.hasResume && !c.isSample && (
+            {c.hasResume && !c.isSample && (
+              <div>
                 <button onClick={() => onOpenResume(c.id)} className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#831843] text-[#831843] hover:bg-[#FAF8F5] text-xs font-bold rounded-full cursor-pointer">
                   <FileText className="w-3.5 h-3.5" /> View resume
                 </button>
-              )}
-            </div>
+              </div>
+            )}
           </article>
         );
       })}

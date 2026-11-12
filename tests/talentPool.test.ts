@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
-  FREE_EMAIL_DOMAINS, MAX_RESUME_BYTES, SAMPLE_CANDIDATES, buildMailto, buildUploadFormData, isValidEmail, isWorkEmail,
+  FREE_EMAIL_DOMAINS, MAX_RESUME_BYTES, SAMPLE_CANDIDATES, buildUploadFormData, isValidEmail, isWorkEmail,
   matchingSkills, normalizeCompanyUrl, normalizePhone, parseCandidates, parseRecruiterSession, sessionFromVerifyResponse,
   validateRecruiter, validateResumeFile, validateUpload, type UploadFields,
 } from "@/lib/talentPool";
@@ -124,16 +124,6 @@ test("matching skills come from the shared skill matcher", () => {
   assert.ok(m.length >= 1);
   assert.ok(!m.some((x) => /photoshop/i.test(x)));
   assert.deepEqual(matchingSkills("Data Analyst", []), []);
-});
-
-test("mailto is encoded, carries context, and needs a contact email", () => {
-  const rec = { name: "Ravi", company: "Acme & Co", designation: "TA Lead" };
-  const c = { id: "1", fullName: "Asha", targetRole: "Data Analyst", skills: [], graduationYear: 2027, contactEmail: "asha@example.com" };
-  const link = buildMailto(c, rec);
-  assert.ok(link?.startsWith("mailto:asha%40example.com?subject="));
-  assert.ok(link?.includes(encodeURIComponent("Acme & Co")));
-  assert.ok(link?.includes(encodeURIComponent("Data Analyst")));
-  assert.equal(buildMailto({ ...c, contactEmail: undefined }, rec), null);
 });
 
 test("offline sample cards are clearly fictional and have no contact details", () => {

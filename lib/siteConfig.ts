@@ -2,8 +2,9 @@
 // Single place for landing-page facts. Edit here, not in the page.
 //
 // REVIEW BEFORE GOING LIVE:
-//  - Program guide URLs were supplied by the project owner (https://sgtonline.ac.in/<program>), who
-//    confirmed sgtonline.ac.in as the official domain. Click-test all five before going live.
+//  - Program guide URLs follow the owner-confirmed pattern https://sgtonline.in/<program>. The owner
+//    corrected the domain from sgtonline.ac.in to sgtonline.in. Only /bba was opened by me; click-test
+//    the other four before going live.
 //  - Program focus lines come from the project owner's brief, not from the SGT Online website.
 //  - FAQ answers are deliberately conservative. Replace with official wording where you have it.
 
@@ -23,8 +24,8 @@ export const TALENT_RESUME_URL = `${API_URL}/talent/resume`;
 /** GET with a placement-staff Google token: anonymous cohort numbers. */
 export const PLACEMENT_SUMMARY_URL = `${API_URL}/placement/summary`;
 
-export const SGT_ONLINE_HOME = "https://sgtonline.ac.in/";
-export const SGT_ONLINE_APPLY = "https://sgtonline.ac.in/apply/";
+export const SGT_ONLINE_HOME = "https://sgtonline.in/";
+export const SGT_ONLINE_APPLY = "https://apply.sgtonline.in/";
 export const UGC_URL = "https://www.ugc.gov.in/";
 
 export interface Program {
@@ -41,35 +42,35 @@ export const PROGRAMS: Program[] = [
     name: "Online BCA",
     fullName: "Bachelor of Computer Applications",
     focus: "Software Foundations & Web Engineering",
-    guideUrl: "https://sgtonline.ac.in/bca",
+    guideUrl: "https://sgtonline.in/bca",
   },
   {
     key: "mca",
     name: "Online MCA",
     fullName: "Master of Computer Applications",
     focus: "Advanced Cloud Computing, AI & Full Stack",
-    guideUrl: "https://sgtonline.ac.in/mca",
+    guideUrl: "https://sgtonline.in/mca",
   },
   {
     key: "bba",
     name: "Online BBA",
     fullName: "Bachelor of Business Administration",
     focus: "Business Operations & Digital Strategy",
-    guideUrl: "https://sgtonline.ac.in/bba",
+    guideUrl: "https://sgtonline.in/bba",
   },
   {
     key: "mba",
     name: "Online MBA",
     fullName: "Master of Business Administration",
     focus: "Tech Management, Marketing & Finance",
-    guideUrl: "https://sgtonline.ac.in/mba",
+    guideUrl: "https://sgtonline.in/mba",
   },
   {
     key: "bcom",
     name: "Online B.Com (Hons)",
     fullName: "Bachelor of Commerce (Honours)",
     focus: "Financial Markets & Accounting",
-    guideUrl: "https://sgtonline.ac.in/bcom",
+    guideUrl: "https://sgtonline.in/bcom",
   },
 ];
 
@@ -92,6 +93,6 @@ export const FAQS: { q: string; a: string }[] = [
   },
   {
     q: "What are the eligibility requirements?",
-    a: "Eligibility is different for each programme (for example, an undergraduate programme and a postgraduate programme ask for different prior qualifications). Open the programme guide for the exact criteria, or apply directly on sgtonline.ac.in.",
+    a: "Eligibility is different for each programme (for example, an undergraduate programme and a postgraduate programme ask for different prior qualifications). Open the programme guide for the exact criteria, or apply directly on sgtonline.in.",
   },
 ];

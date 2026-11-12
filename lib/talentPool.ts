@@ -1,6 +1,6 @@
 // lib/talentPool.ts
 // Pure helpers for the Talent Pool upload and the recruiter section: validation, payload building,
-// response parsing and mailto links. No React and no network calls here, so everything is unit-tested.
+// response parsing. No React and no network calls here, so everything is unit-tested.
 //
 // IMPORTANT: every check in this file is a convenience for the user. The backend must repeat them
 // (file type and size, work-email rule, recruiter verification, consent) because browser code can be bypassed.
@@ -279,23 +279,6 @@ export function splitHighlight(text: string, query: string): TextSegment[] {
     .split(re)
     .filter((t) => t.length > 0)
     .map((t) => ({ text: t, hit: words.includes(t.toLowerCase()) }));
-}
-
-export function buildMailto(c: Candidate, recruiter: Pick<RecruiterSession, "name" | "company" | "designation">): string | null {
-  if (!c.contactEmail) return null;
-  const subject = `Opportunity at ${recruiter.company}: ${c.targetRole} (via OptiPath Talent Pool)`;
-  const body = [
-    `Hello ${c.fullName},`,
-    "",
-    `I found your profile in the OptiPath Talent Pool for the role "${c.targetRole}".`,
-    "",
-    "[Add details of the opportunity here]",
-    "",
-    `Regards,`,
-    recruiter.name,
-    `${recruiter.designation}, ${recruiter.company}`,
-  ].join("\n");
-  return `mailto:${encodeURIComponent(c.contactEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
 
 /** Layout preview shown only when the backend cannot be reached. Obviously fictional, no contact details. */
