@@ -23,18 +23,18 @@ import {
 
 const EMPTY: RecruiterFields = { name: "", workEmail: "", company: "", designation: "", website: "" };
 const TIMEOUT_MS = 15000;
-const inputCls = "w-full p-3 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]";
+const inputCls = "w-full p-3 bg-[#F4F8FC] border border-[#C8D7E8] rounded-xl text-xs outline-none focus:border-[#0060AA]";
 
 export default function RecruiterPage() {
   const { ready, session } = useRecruiterSession();
 
   return (
-    <main className="min-h-screen bg-[#FAF8F5] text-[#0E1726]">
+    <main className="min-h-screen bg-[#F4F8FC] text-[#0E1726]">
       <div className="max-w-4xl mx-auto px-6 py-10">
-        <Link href="/portal" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#831843] hover:underline">
+        <Link href="/portal" className="inline-flex items-center gap-1.5 text-xs font-bold text-[#0060AA] hover:underline">
           <ArrowLeft className="w-3.5 h-3.5" /> Back to portal
         </Link>
-        <h1 className="font-serif text-3xl font-bold mt-4">Recruiter Talent Pool</h1>
+        <h1 className="font-heading text-3xl font-bold mt-4">Recruiter Talent Pool</h1>
         <p className="text-sm text-[#526173] mt-1">Browse the resumes students have chosen to share, and search them by keyword.</p>
 
         <div className="mt-8">
@@ -105,44 +105,44 @@ function VerificationGate() {
   }
 
   return (
-    <form onSubmit={submit} noValidate className="bg-white border border-[#E5DFD5] rounded-3xl p-7 shadow-xs space-y-3 max-w-xl">
-      <div className="flex items-center gap-2 pb-2 border-b border-[#EAE4D9]">
-        <ShieldCheck className="w-5 h-5 text-[#831843]" />
-        <h2 className="font-serif text-xl font-bold">Verify you are a recruiter</h2>
+    <form onSubmit={submit} noValidate className="bg-white border border-[#D5E1EE] rounded-3xl p-7 shadow-xs space-y-3 max-w-xl">
+      <div className="flex items-center gap-2 pb-2 border-b border-[#DCE7F2]">
+        <ShieldCheck className="w-5 h-5 text-[#0060AA]" />
+        <h2 className="font-heading text-xl font-bold">Verify you are a recruiter</h2>
       </div>
       <p className="text-xs text-[#526173]">Candidate profiles are shown only to verified recruiters. Use your official company email.</p>
 
       <div>
-        <label htmlFor="rc-name" className="text-xs font-bold text-[#64748B] block mb-1">Recruiter name</label>
+        <label htmlFor="rc-name" className="text-xs font-bold text-[#5B6B80] block mb-1">Recruiter name</label>
         <input id="rc-name" className={inputCls} value={fields.name} onChange={(e) => set("name", e.target.value)} autoComplete="name" />
         {err("name")}
       </div>
       <div>
-        <label htmlFor="rc-email" className="text-xs font-bold text-[#64748B] block mb-1">Official work email</label>
+        <label htmlFor="rc-email" className="text-xs font-bold text-[#5B6B80] block mb-1">Official work email</label>
         <input id="rc-email" type="email" className={inputCls} value={fields.workEmail} onChange={(e) => set("workEmail", e.target.value)} autoComplete="email" />
         {err("workEmail")}
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>
-          <label htmlFor="rc-company" className="text-xs font-bold text-[#64748B] block mb-1">Company name</label>
+          <label htmlFor="rc-company" className="text-xs font-bold text-[#5B6B80] block mb-1">Company name</label>
           <input id="rc-company" className={inputCls} value={fields.company} onChange={(e) => set("company", e.target.value)} autoComplete="organization" />
           {err("company")}
         </div>
         <div>
-          <label htmlFor="rc-desig" className="text-xs font-bold text-[#64748B] block mb-1">Designation</label>
+          <label htmlFor="rc-desig" className="text-xs font-bold text-[#5B6B80] block mb-1">Designation</label>
           <input id="rc-desig" className={inputCls} value={fields.designation} onChange={(e) => set("designation", e.target.value)} autoComplete="organization-title" />
           {err("designation")}
         </div>
       </div>
       <div>
-        <label htmlFor="rc-web" className="text-xs font-bold text-[#64748B] block mb-1">Company website or LinkedIn page</label>
+        <label htmlFor="rc-web" className="text-xs font-bold text-[#5B6B80] block mb-1">Company website or LinkedIn page</label>
         <input id="rc-web" className={inputCls} value={fields.website} onChange={(e) => set("website", e.target.value)} placeholder="example.com or linkedin.com/company/..." />
         {err("website")}
       </div>
 
       {serverError && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3" role="alert">{serverError}</p>}
 
-      <button type="submit" disabled={busy} className="w-full py-3 bg-[#831843] hover:bg-[#701237] disabled:opacity-60 text-white text-sm font-bold rounded-full flex items-center justify-center gap-2 cursor-pointer">
+      <button type="submit" disabled={busy} className="w-full py-3 bg-[#0060AA] hover:bg-[#004D8A] disabled:opacity-60 text-white text-sm font-bold rounded-full flex items-center justify-center gap-2 cursor-pointer">
         {busy ? <><Loader2 className="w-4 h-4 animate-spin" /> Verifying...</> : "Verify and continue"}
       </button>
     </form>
@@ -231,29 +231,29 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-[#E5DFD5] rounded-2xl px-4 py-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-white border border-[#D5E1EE] rounded-2xl px-4 py-3">
         <p className="text-xs">
           <ShieldCheck className="w-4 h-4 text-emerald-700 inline mr-1.5 -mt-0.5" />
           Verified: <b>{session.name || "Recruiter"}</b>{session.company ? `, ${session.company}` : ""}
         </p>
-        <button onClick={clearRecruiterSession} className="text-xs font-bold text-[#831843] hover:underline cursor-pointer">Sign out</button>
+        <button onClick={clearRecruiterSession} className="text-xs font-bold text-[#0060AA] hover:underline cursor-pointer">Sign out</button>
       </div>
 
-      <form onSubmit={(e) => void search(e)} className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-3">
+      <form onSubmit={(e) => void search(e)} className="bg-white border border-[#D5E1EE] rounded-2xl p-5 space-y-3">
         <div>
-          <label htmlFor="rc-key" className="text-xs font-bold text-[#64748B] block mb-1">Keyword (leave empty to list all resumes)</label>
+          <label htmlFor="rc-key" className="text-xs font-bold text-[#5B6B80] block mb-1">Keyword (leave empty to list all resumes)</label>
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6B80]" />
             <input id="rc-key" className={`${inputCls} pl-9`} value={keyword} onChange={(e) => setKeyword(e.target.value)} placeholder="e.g. python, power bi, tally, recruitment" />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label htmlFor="rc-role" className="text-xs font-bold text-[#64748B] block mb-1">Career role (optional)</label>
+            <label htmlFor="rc-role" className="text-xs font-bold text-[#5B6B80] block mb-1">Career role (optional)</label>
             <RoleSelect id="rc-role" value={role} onChange={setRole} placeholder="All roles" />
           </div>
           <div>
-            <label htmlFor="rc-min" className="text-xs font-bold text-[#64748B] block mb-1">Minimum skill match (needs a role)</label>
+            <label htmlFor="rc-min" className="text-xs font-bold text-[#5B6B80] block mb-1">Minimum skill match (needs a role)</label>
             <select id="rc-min" className={inputCls} value={minPercent} onChange={(e) => setMinPercent(Number(e.target.value))} disabled={!role}>
               <option value={0}>Any</option>
               <option value={30}>30% or more</option>
@@ -262,7 +262,7 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
             </select>
           </div>
         </div>
-        <button type="submit" className="px-6 py-2.5 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full cursor-pointer">Search resumes</button>
+        <button type="submit" className="px-6 py-2.5 bg-[#0060AA] hover:bg-[#004D8A] text-white text-xs font-bold rounded-full cursor-pointer">Search resumes</button>
       </form>
 
       {state.kind === "loading" && <p className="text-xs text-[#526173] flex items-center gap-2"><Loader2 className="w-4 h-4 animate-spin" /> Searching...</p>}
@@ -282,8 +282,8 @@ function TalentSearch({ session }: { session: RecruiterSession }) {
       {state.kind === "ok" &&
         (() => {
           const items = listed(state.candidates, state.role);
-          if (state.candidates.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">{state.query ? `No resumes mention "${state.query}".` : "No resumes have been shared yet."}</p>;
-          if (items.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">No resumes match these filters. Try lowering the minimum match.</p>;
+          if (state.candidates.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#D5E1EE] rounded-xl p-4">{state.query ? `No resumes mention "${state.query}".` : "No resumes have been shared yet."}</p>;
+          if (items.length === 0) return <p className="text-xs text-[#526173] bg-white border border-[#D5E1EE] rounded-xl p-4">No resumes match these filters. Try lowering the minimum match.</p>;
           return (
             <>
               <p className="text-xs text-[#526173]">
@@ -315,42 +315,42 @@ function CandidateGrid({ items, query, onOpenResume }: { items: Listed[]; query:
         const route = degreeRouteFor(c.targetRole);
         const chips = percent === null ? c.skills : matched;
         return (
-          <article key={c.id} className="bg-white border border-[#E5DFD5] rounded-2xl p-5 shadow-xs space-y-3">
+          <article key={c.id} className="bg-white border border-[#D5E1EE] rounded-2xl p-5 shadow-xs space-y-3">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h3 className="font-serif text-lg font-bold">{c.fullName}</h3>
+                <h3 className="font-heading text-lg font-bold">{c.fullName}</h3>
                 <p className="text-xs text-[#526173]">{c.targetRole}</p>
               </div>
               {percent !== null && (
                 <div className="text-right shrink-0">
-                  <span className="font-serif text-2xl font-bold text-[#831843]">{percent}%</span>
-                  <span className="block text-[10px] uppercase font-bold text-[#64748B]">skill match</span>
+                  <span className="font-heading text-2xl font-bold text-[#0060AA]">{percent}%</span>
+                  <span className="block text-[10px] uppercase font-bold text-[#5B6B80]">skill match</span>
                 </div>
               )}
             </div>
-            <p className="text-[11px] text-[#64748B]">
+            <p className="text-[11px] text-[#5B6B80]">
               {c.program ? <>Programme: <b>{c.program}</b> &bull; </> : null}
               {route ? <>Degree route: {route} &bull; </> : null}
               Graduation / expected: {c.graduationYear ?? "not given"}
             </p>
             {c.snippet && (
-              <p className="text-xs text-[#334155] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3 leading-relaxed">
+              <p className="text-xs text-[#334155] bg-[#F4F8FC] border border-[#DCE7F2] rounded-xl p-3 leading-relaxed">
                 &hellip;<Highlight text={c.snippet} query={query} />&hellip;
               </p>
             )}
             <div>
-              <span className="text-[10px] uppercase font-bold text-[#64748B]">{percent === null ? "Skills" : "Matching skills"}</span>
+              <span className="text-[10px] uppercase font-bold text-[#5B6B80]">{percent === null ? "Skills" : "Matching skills"}</span>
               <div className="flex flex-wrap gap-1.5 mt-1">
                 {chips.length > 0 ? (
                   chips.map((m) => <span key={m} className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 text-[11px] font-semibold"><Highlight text={m} query={query} /></span>)
                 ) : (
-                  <span className="text-[11px] text-[#64748B]">{percent === null ? "No skills listed." : "None of the listed skills match this role's core skills."}</span>
+                  <span className="text-[11px] text-[#5B6B80]">{percent === null ? "No skills listed." : "None of the listed skills match this role's core skills."}</span>
                 )}
               </div>
             </div>
             {c.hasResume && !c.isSample && (
               <div>
-                <button onClick={() => onOpenResume(c.id)} className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#831843] text-[#831843] hover:bg-[#FAF8F5] text-xs font-bold rounded-full cursor-pointer">
+                <button onClick={() => onOpenResume(c.id)} className="inline-flex items-center gap-1.5 px-4 py-2 border border-[#0060AA] text-[#0060AA] hover:bg-[#F4F8FC] text-xs font-bold rounded-full cursor-pointer">
                   <FileText className="w-3.5 h-3.5" /> View resume
                 </button>
               </div>

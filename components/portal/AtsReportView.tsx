@@ -12,10 +12,10 @@ const STYLE: Record<CheckStatus, { icon: React.ReactNode; box: string }> = {
 
 export default function AtsReportView({ report }: { report: AtsReport }) {
   return (
-    <div className="space-y-4">
-      <div className="bg-white border border-[#E5DFD5] rounded-2xl p-5">
-        <p className="text-[10px] uppercase font-bold text-[#64748B]">ATS-readiness checklist</p>
-        <p className="font-serif text-3xl font-bold text-[#831843]">{report.score}%</p>
+    <div className="reveal space-y-4">
+      <div className="bg-white border border-[#D5E1EE] rounded-2xl p-5">
+        <p className="text-[10px] uppercase font-bold text-[#5B6B80]">ATS-readiness checklist</p>
+        <p className="font-heading text-3xl font-bold text-[#0060AA]">{report.score}%</p>
         <p className="text-[11px] text-[#526173]">
           Our own rule-based checklist, built on common ATS guidance. It is not a score from a real ATS and does not guarantee a shortlist.
         </p>
@@ -26,17 +26,17 @@ export default function AtsReportView({ report }: { report: AtsReport }) {
           <li key={c.id} className={`flex items-start gap-2.5 border rounded-xl p-3 text-xs ${STYLE[c.status].box}`}>
             {STYLE[c.status].icon}
             <div>
-              <p className="font-bold">{c.label} <span className="font-normal text-[#64748B]">(weight {c.weight})</span></p>
+              <p className="font-bold">{c.label} <span className="font-normal text-[#5B6B80]">(weight {c.weight})</span></p>
               <p className="text-[#334155] mt-0.5">{c.detail}</p>
-              {c.fix && <p className="text-[#831843] font-semibold mt-1">Fix: {c.fix}</p>}
+              {c.fix && <p className="text-[#0060AA] font-semibold mt-1">Fix: {c.fix}</p>}
             </div>
           </li>
         ))}
       </ul>
 
       {report.fixes.length > 0 && (
-        <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5">
-          <h3 className="font-serif text-lg font-bold">How to make it ATS-friendly</h3>
+        <section className="bg-white border border-[#D5E1EE] rounded-2xl p-5">
+          <h3 className="font-heading text-lg font-bold">Fixes for this resume</h3>
           <ol className="list-decimal pl-5 mt-2 space-y-1.5 text-xs text-[#334155]">
             {report.fixes.map((f) => (
               <li key={f}>{f}</li>

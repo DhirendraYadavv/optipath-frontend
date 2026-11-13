@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useRef, useState } from "react";
 import { GoogleLogin } from "@react-oauth/google";
 import { X } from "lucide-react";
 import { useAuth } from "@/components/AuthProvider";
@@ -8,24 +8,32 @@ import { useAuth } from "@/components/AuthProvider";
 export default function SignInModal() {
   const { signInOpen, signInReason, closeSignIn, signInWithCredential } = useAuth();
   const [error, setError] = useState("");
+  const [closing, setClosing] = useState(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!signInOpen) return null;
 
+  // Play the closing animation first, then really close.
   const close = () => {
-    setError("");
-    closeSignIn();
+    if (closing) return;
+    setClosing(true);
+    timer.current = setTimeout(() => {
+      setError("");
+      setClosing(false);
+      closeSignIn();
+    }, 180);
   };
 
   const missingClientId = !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
 
   return (
-    <div className="fixed inset-0 z-[60] bg-black/45 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Sign in">
-      <div className="bg-white border border-[#DDD8CE] rounded-3xl max-w-sm w-full p-7 shadow-2xl relative text-center">
+    <div data-closing={closing} onClick={(e) => { if (e.target === e.currentTarget) close(); }} className="modal-backdrop fixed inset-0 z-[60] bg-black/45 backdrop-blur-xs flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="Sign in">
+      <div className="modal-panel bg-white border border-[#C8D7E8] rounded-3xl max-w-sm w-full p-7 shadow-2xl relative text-center">
         <button onClick={close} aria-label="Close" className="absolute top-5 right-5 text-slate-400 hover:text-slate-800 cursor-pointer">
           <X className="w-5 h-5" />
         </button>
-        <h3 className="font-serif text-2xl font-bold text-[#0E1726]">Sign in to continue</h3>
-        <p className="text-xs text-[#64748B] mt-1 mb-6">
+        <h3 className="font-heading text-2xl font-bold text-[#0E1726]">Sign in to continue</h3>
+        <p className="text-xs text-[#5B6B80] mt-1 mb-6">
           {signInReason || "Use your Google account. No OTP and no password to remember."}
         </p>
 

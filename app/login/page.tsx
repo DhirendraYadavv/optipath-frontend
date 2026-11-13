@@ -8,6 +8,7 @@ import { ArrowLeft, ArrowRight, AlertCircle, Lock, Target, User } from "lucide-r
 import RoleSearch from "@/components/RoleSearch";
 import { TEST_REG_NO, buildDevTestStudent, normalizeBackendStudent } from "@/lib/sgtStudent";
 import { API_URL } from "@/lib/siteConfig";
+import { saveStudentToken } from "@/lib/studentStore";
 
 const IS_DEV = process.env.NODE_ENV !== "production";
 
@@ -20,7 +21,7 @@ export default function LoginPage() {
   const [error, setError] = useState("");
 
   const finish = (student: ReturnType<typeof buildDevTestStudent>, token?: string) => {
-    if (token) localStorage.setItem("optipath_token", token);
+    if (token) saveStudentToken(token);
     localStorage.setItem("optipath_student", JSON.stringify(student));
     router.push("/dashboard");
   };
@@ -76,14 +77,14 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] flex flex-col justify-center items-center p-6 text-[#0E1726]">
-      <div className="w-full max-w-md bg-white border border-[#E5DFD5] rounded-3xl p-8 shadow-xs space-y-6">
+    <div className="min-h-screen bg-[#F4F8FC] flex flex-col justify-center items-center p-6 text-[#0E1726]">
+      <div className="w-full max-w-md bg-white border border-[#D5E1EE] rounded-3xl p-8 shadow-xs space-y-6">
         <div className="text-center space-y-2">
           <div className="relative w-40 h-12 mx-auto">
             <Image src="/sgt-online-logo.png" alt="SGT Online" fill className="object-contain" priority />
           </div>
-          <h2 className="font-serif text-2xl font-bold text-[#0E1726]">SGT Student Check</h2>
-          <p className="text-xs text-[#64748B]">Enter your registration number, date of birth and the role you are aiming for.</p>
+          <h2 className="font-heading text-2xl font-bold text-[#0E1726]">SGT Student Check</h2>
+          <p className="text-xs text-[#5B6B80]">Enter your registration number, date of birth and the role you are aiming for.</p>
         </div>
 
         {error && (
@@ -102,7 +103,7 @@ export default function LoginPage() {
                 setRegNo(TEST_REG_NO);
                 setDob("2001-07-05");
               }}
-              className="font-bold text-[#831843] hover:underline cursor-pointer"
+              className="font-bold text-[#0060AA] hover:underline cursor-pointer"
             >
               Fill test student {TEST_REG_NO}
             </button>
@@ -111,9 +112,9 @@ export default function LoginPage() {
 
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">Registration number</label>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[#5B6B80] block mb-1">Registration number</label>
             <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <User className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6B80]" />
               <input
                 type="text"
                 required
@@ -121,27 +122,27 @@ export default function LoginPage() {
                 onChange={(e) => setRegNo(e.target.value)}
                 placeholder="e.g. SGT2023BCA1042"
                 autoComplete="off"
-                className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843] font-mono uppercase"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#F4F8FC] border border-[#C8D7E8] rounded-xl text-xs outline-none focus:border-[#0060AA] font-mono uppercase"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] block mb-1">Date of birth</label>
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[#5B6B80] block mb-1">Date of birth</label>
             <div className="relative">
-              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#64748B]" />
+              <Lock className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#5B6B80]" />
               <input
                 type="date"
                 required
                 value={dob}
                 onChange={(e) => setDob(e.target.value)}
-                className="w-full pl-9 pr-3 py-2.5 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]"
+                className="w-full pl-9 pr-3 py-2.5 bg-[#F4F8FC] border border-[#C8D7E8] rounded-xl text-xs outline-none focus:border-[#0060AA]"
               />
             </div>
           </div>
 
           <div>
-            <label className="text-[11px] font-bold uppercase tracking-wider text-[#64748B] mb-1 flex items-center gap-1.5">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[#5B6B80] mb-1 flex items-center gap-1.5">
               <Target className="w-3.5 h-3.5" /> Your goal role
             </label>
             <RoleSearch value={goal} onChange={setGoal} />
@@ -150,20 +151,20 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-[#831843] hover:bg-[#701237] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
+            className="w-full py-3 bg-[#0060AA] hover:bg-[#004D8A] text-white font-bold text-xs uppercase tracking-wider rounded-xl transition shadow-xs cursor-pointer disabled:opacity-50 flex items-center justify-center gap-1.5"
           >
             {loading ? "Checking your record..." : "Open my dashboard"}
             <ArrowRight className="w-3.5 h-3.5" />
           </button>
         </form>
 
-        <div className="text-center pt-3 border-t border-[#F1EBE2] flex flex-col gap-2">
-          <Link href="/" className="text-xs font-semibold text-[#831843] hover:underline inline-flex items-center justify-center gap-1">
+        <div className="text-center pt-3 border-t border-[#E6EEF7] flex flex-col gap-2">
+          <Link href="/" className="text-xs font-semibold text-[#0060AA] hover:underline inline-flex items-center justify-center gap-1">
             <ArrowLeft className="w-3.5 h-3.5" /> Back to home
           </Link>
-          <span className="text-[11px] text-[#64748B]">
+          <span className="text-[11px] text-[#5B6B80]">
             Not an SGT student?{" "}
-            <Link href="/onboard" className="font-bold text-[#831843] hover:underline">Check yourself here</Link>
+            <Link href="/onboard" className="font-bold text-[#0060AA] hover:underline">Check yourself here</Link>
           </span>
         </div>
       </div>

@@ -5,7 +5,8 @@
 import { useMemo, useSyncExternalStore } from "react";
 
 const STUDENT_KEY = "optipath_student";
-const TOKEN_KEY = "optipath_token";
+// The student-login token and the Google token must never share a slot: the Google one is "optipath_token".
+const TOKEN_KEY = "optipath_student_token";
 
 const listeners = new Set<() => void>();
 

@@ -12,7 +12,7 @@ export default function RoleSelect({ id, value, onChange, placeholder = "Select 
       id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className="w-full p-3 bg-[#FAF8F5] border border-[#DDD8CE] rounded-xl text-xs outline-none focus:border-[#831843]"
+      className="w-full p-3 bg-[#F4F8FC] border border-[#C8D7E8] rounded-xl text-xs outline-none focus:border-[#0060AA]"
     >
       <option value="">{placeholder}</option>
       {tracks.flatMap((t) =>

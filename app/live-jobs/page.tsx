@@ -15,22 +15,22 @@ function LiveJobsContent() {
   const role = searchParams.get("role") || fromRecord;
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
+    <div className="min-h-screen bg-[#F4F8FC] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
       <div className="max-w-3xl mx-auto space-y-8">
-        <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#D9E4F0]">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#5B6B80] hover:text-[#0060AA]">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">Openings in the last 24 hours</span>
+          <span className="text-xs font-mono font-bold text-[#0060AA] uppercase tracking-wider">Openings in the last 24 hours</span>
         </div>
 
         {!ready ? (
-          <p className="text-xs text-[#64748B] text-center">Loading...</p>
+          <p className="text-xs text-[#5B6B80] text-center">Loading...</p>
         ) : role ? (
           <>
-            <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-1">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#831843]">Your goal</span>
-              <h1 className="font-serif text-2xl font-bold">{role}</h1>
+            <div className="bg-white rounded-3xl border border-[#D5E1EE] p-6 shadow-xs space-y-1">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0060AA]">Your goal</span>
+              <h1 className="font-heading text-2xl font-bold">{role}</h1>
               <p className="text-xs text-[#526173]">
                 The button below opens a LinkedIn search for this role, limited to jobs posted in the last 24 hours. Listings come live from LinkedIn.
               </p>
@@ -38,11 +38,11 @@ function LiveJobsContent() {
             <CareerActions role={role} showProjects={false} />
           </>
         ) : (
-          <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 text-center space-y-3">
+          <div className="bg-white rounded-3xl border border-[#D5E1EE] p-8 text-center space-y-3">
             <p className="text-sm text-[#526173]">Choose your goal first so we can search for the right openings.</p>
             <div className="flex justify-center gap-3">
-              <Link href="/login" className="px-5 py-2.5 bg-[#831843] text-white text-xs font-bold rounded-xl">I am an SGT student</Link>
-              <Link href="/onboard" className="px-5 py-2.5 border border-[#831843] text-[#831843] text-xs font-bold rounded-xl">I am not an SGT student</Link>
+              <Link href="/login" className="px-5 py-2.5 bg-[#0060AA] text-white text-xs font-bold rounded-xl">I am an SGT student</Link>
+              <Link href="/onboard" className="px-5 py-2.5 border border-[#0060AA] text-[#0060AA] text-xs font-bold rounded-xl">I am not an SGT student</Link>
             </div>
           </div>
         )}
@@ -53,7 +53,7 @@ function LiveJobsContent() {
 
 export default function LiveJobsPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F4F8FC] p-12 text-center text-xs text-[#5B6B80]">Loading...</div>}>
       <LiveJobsContent />
     </Suspense>
   );

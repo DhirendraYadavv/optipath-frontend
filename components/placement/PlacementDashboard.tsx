@@ -12,8 +12,8 @@ function Bars({ title, rows, max = 8 }: { title: string; rows: Tally[]; max?: nu
   const top = rows.slice(0, max);
   const peak = Math.max(1, ...top.map((r) => r.count));
   return (
-    <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5">
-      <h3 className="font-serif text-lg font-bold mb-3">{title}</h3>
+    <section className="bg-white border border-[#D5E1EE] rounded-2xl p-5">
+      <h3 className="font-heading text-lg font-bold mb-3">{title}</h3>
       {top.length === 0 ? (
         <p className="text-xs text-[#526173]">No data yet.</p>
       ) : (
@@ -21,7 +21,7 @@ function Bars({ title, rows, max = 8 }: { title: string; rows: Tally[]; max?: nu
           {top.map((r) => (
             <li key={r.label} className="text-xs">
               <div className="flex justify-between gap-3"><span className="truncate">{r.label}</span><span className="font-bold">{r.count}</span></div>
-              <div className="h-2 bg-[#F1ECE3] rounded-full mt-1"><div className="h-2 bg-[#831843] rounded-full" style={{ width: `${(r.count / peak) * 100}%` }} /></div>
+              <div className="h-2 bg-[#E8F0F8] rounded-full mt-1"><div className="h-2 bg-[#0060AA] rounded-full" style={{ width: `${(r.count / peak) * 100}%` }} /></div>
             </li>
           ))}
         </ul>
@@ -32,9 +32,9 @@ function Bars({ title, rows, max = 8 }: { title: string; rows: Tally[]; max?: nu
 
 function Stat({ label, value, note }: { label: string; value: string; note?: string }) {
   return (
-    <div className="bg-white border border-[#E5DFD5] rounded-2xl p-4">
-      <p className="text-[10px] uppercase font-bold text-[#64748B]">{label}</p>
-      <p className="font-serif text-2xl font-bold text-[#831843]">{value}</p>
+    <div className="bg-white border border-[#D5E1EE] rounded-2xl p-4">
+      <p className="text-[10px] uppercase font-bold text-[#5B6B80]">{label}</p>
+      <p className="font-heading text-2xl font-bold text-[#0060AA]">{value}</p>
       {note && <p className="text-[11px] text-[#526173]">{note}</p>}
     </div>
   );
@@ -73,10 +73,10 @@ export default function PlacementDashboard() {
 
   if (!user) {
     return (
-      <div className="bg-white border border-[#E5DFD5] rounded-2xl p-8 text-center space-y-3">
-        <Lock className="w-6 h-6 text-[#831843] mx-auto" />
+      <div className="bg-white border border-[#D5E1EE] rounded-2xl p-8 text-center space-y-3">
+        <Lock className="w-6 h-6 text-[#0060AA] mx-auto" />
         <p className="text-sm font-bold">Placement-cell staff only</p>
-        <button onClick={() => openSignIn("Sign in with your staff Google account")} className="px-6 py-2.5 bg-[#831843] text-white text-xs font-bold rounded-full cursor-pointer">Sign in with Google</button>
+        <button onClick={() => openSignIn("Sign in with your staff Google account")} className="px-6 py-2.5 bg-[#0060AA] text-white text-xs font-bold rounded-full cursor-pointer">Sign in with Google</button>
       </div>
     );
   }
@@ -105,8 +105,8 @@ export default function PlacementDashboard() {
         <Bars title="Pool by programme" rows={s.byProgram} />
         <Bars title="Most common target roles" rows={s.byRole} />
       </div>
-      <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5">
-        <h3 className="font-serif text-lg font-bold">Most common skill gaps</h3>
+      <section className="bg-white border border-[#D5E1EE] rounded-2xl p-5">
+        <h3 className="font-heading text-lg font-bold">Most common skill gaps</h3>
         <p className="text-[11px] text-[#526173] mb-3">Skills a role needs that students did not list, counted across {s.analysed} resumes.</p>
         {s.gaps.length === 0 ? (
           <p className="text-xs text-[#526173]">Not enough uploaded resumes yet.</p>

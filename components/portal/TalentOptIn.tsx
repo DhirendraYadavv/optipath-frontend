@@ -5,6 +5,8 @@ import { CheckCircle2, Loader2 } from "lucide-react";
 import { TALENT_UPLOAD_URL } from "@/lib/siteConfig";
 import { CONSENT_TEXT, UploadErrors, UploadFields, buildUploadFormData, validateUpload } from "@/lib/talentPool";
 import { readStudentToken } from "@/lib/studentStore";
+import { readGoogleToken } from "@/lib/talentAccount";
+import { useAuth } from "@/components/AuthProvider";
 
 interface Props {
   /** Everything except consent, collected by the details form above. */
@@ -15,9 +17,12 @@ interface Props {
   program: string;
   /** Checklist score, only when the student is signed in and the check ran. */
   atsScore?: number;
+  /** Called after a successful publish so the "your entry" card can refresh. */
+  onPublished?: () => void;
 }
 
-export default function TalentOptIn({ fields, file, skills, program, atsScore }: Props) {
+export default function TalentOptIn({ fields, file, skills, program, atsScore, onPublished }: Props) {
+  const { user, openSignIn } = useAuth();
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<UploadErrors>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -31,23 +36,44 @@ export default function TalentOptIn({ fields, file, skills, program, atsScore }:
     setErrors(found);
     if (Object.keys(found).length > 0 || !file) return;
 
+    const googleToken = readGoogleToken();
+    if (!googleToken) {
+      if (user) {
+        // Signed in on this page, but our server never confirmed it (it may have been offline at that moment).
+        setServerError("Your Google sign-in was not confirmed by our server, so nothing was published. Please sign out, sign in with Google again, then publish.");
+      } else {
+        setServerError("Sign in with Google first. It proves the email is yours, so only you can replace or remove this resume.");
+        openSignIn("Sign in with Google to publish your resume to the Talent Pool.");
+      }
+      return;
+    }
+
     setStatus("sending");
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 20000);
     try {
-      const token = readStudentToken();
+      const studentToken = readStudentToken();
       const res = await fetch(TALENT_UPLOAD_URL, {
         method: "POST",
-        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        body: buildUploadFormData(all, file, file.name, { skills: JSON.stringify(skills), program, source: "student-portal", ...(atsScore === undefined ? {} : { atsScore: String(atsScore) }) }),
+        headers: { Authorization: `Bearer ${googleToken}` },
+        body: buildUploadFormData(all, file, file.name, { skills: JSON.stringify(skills), program, source: "student-portal", ...(studentToken ? { studentToken } : {}), ...(atsScore === undefined ? {} : { atsScore: String(atsScore) }) }),
         signal: controller.signal,
       });
       if (res.ok) {
         setStatus("done");
+        onPublished?.();
         return;
       }
       setStatus("idle");
-      setServerError(res.status >= 500 ? "The Talent Pool service had a problem. Please try again shortly." : "The server did not accept this. Please check your details and try again.");
+      setServerError(
+        res.status === 401
+          ? "Your Google sign-in could not be verified. Please sign out, sign in with Google again, then retry."
+          : res.status === 403
+            ? "The email above must be the same as the Google account you are signed in with."
+            : res.status >= 500
+              ? "The Talent Pool service had a problem. Please try again shortly."
+              : "The server did not accept this. Please check your details and try again."
+      );
     } catch {
       setStatus("idle");
       setServerError("Could not reach the Talent Pool service. Nothing was published.");
@@ -59,7 +85,7 @@ export default function TalentOptIn({ fields, file, skills, program, atsScore }:
   if (status === "done") {
     return (
       <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-5 text-xs text-emerald-900 flex items-start gap-2" role="status">
-        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> Your resume is now in the Talent Pool for verified recruiters. You can ask us to remove it at any time.
+        <CheckCircle2 className="w-4 h-4 shrink-0 mt-0.5" /> Your resume is now in the Talent Pool for verified recruiters. You can remove it at any time from the card below.
       </div>
     );
   }
@@ -67,8 +93,8 @@ export default function TalentOptIn({ fields, file, skills, program, atsScore }:
   const err = (k: keyof UploadErrors) => (errors[k] ? <p className="text-[11px] text-red-700" role="alert">{errors[k]}</p> : null);
 
   return (
-    <form onSubmit={publish} noValidate className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-3">
-      <h3 className="font-serif text-lg font-bold">Join the Talent Pool</h3>
+    <form onSubmit={publish} noValidate className="bg-white border border-[#D5E1EE] rounded-2xl p-5 space-y-3">
+      <h3 className="font-heading text-lg font-bold">Join the Talent Pool</h3>
       <p className="text-[11px] text-[#526173]">Publishing sends your resume, the details above and the skills found in it to our servers. Nothing is published unless you tick the box.</p>
       {(["fullName", "email", "phone", "sgtRegNo", "targetRole", "graduationYear", "resume"] as const).map((k) => (
         <React.Fragment key={k}>{err(k)}</React.Fragment>
@@ -79,7 +105,7 @@ export default function TalentOptIn({ fields, file, skills, program, atsScore }:
       </label>
       {err("consent")}
       {serverError && <p className="text-xs text-red-700 bg-red-50 border border-red-200 rounded-xl p-3" role="alert">{serverError}</p>}
-      <button type="submit" disabled={status === "sending"} className="px-6 py-2.5 bg-[#831843] hover:bg-[#701237] disabled:opacity-60 text-white text-xs font-bold rounded-full flex items-center gap-2 cursor-pointer">
+      <button type="submit" disabled={status === "sending"} className="px-6 py-2.5 bg-[#0060AA] hover:bg-[#004D8A] disabled:opacity-60 text-white text-xs font-bold rounded-full flex items-center gap-2 cursor-pointer">
         {status === "sending" ? <><Loader2 className="w-4 h-4 animate-spin" /> Publishing...</> : "Publish my resume to the Talent Pool"}
       </button>
     </form>

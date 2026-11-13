@@ -34,19 +34,19 @@ export default function AtsDownload({ text, details, role, beforeScore }: Props)
 
   if (!isBuildable(blocks)) {
     return (
-      <p className="text-xs text-[#526173] bg-white border border-[#E5DFD5] rounded-xl p-4">
+      <p className="text-xs text-[#526173] bg-white border border-[#D5E1EE] rounded-xl p-4">
         We could not find enough sections (Education, Skills, Experience, Projects) in your resume to rebuild it. Add clear section headings and upload again.
       </p>
     );
   }
   return (
-    <section className="bg-white border border-[#E5DFD5] rounded-2xl p-5 space-y-2">
-      <h3 className="font-serif text-lg font-bold">Download an ATS-friendly version</h3>
+    <section className="bg-white border border-[#D5E1EE] rounded-2xl p-5 space-y-2">
+      <h3 className="font-heading text-lg font-bold">Download an ATS-friendly version</h3>
       <p className="text-xs text-[#334155]">
         Same checklist score: {beforeScore}% now, about {after}% after reformatting. We rebuild your own text into a single-column Word file with standard headings and plain bullets.
         We do not add or change any skills, dates or numbers. Read it once before you send it.
       </p>
-      <button onClick={download} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#831843] hover:bg-[#701237] text-white text-xs font-bold rounded-full cursor-pointer">
+      <button onClick={download} className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#0060AA] hover:bg-[#004D8A] text-white text-xs font-bold rounded-full cursor-pointer">
         <Download className="w-4 h-4" /> Download .docx
       </button>
     </section>

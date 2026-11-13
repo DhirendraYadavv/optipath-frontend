@@ -1,0 +1,36 @@
+/* OptiPath theme. Colours come from the SGT Online logo: brand blue #0060AA and orange #EF7F1A.
+   Pages use these as Tailwind classes such as text-[#0060AA]. The list below is the reference palette, so a later
+   re-colour is a search-and-replace of these values.
+
+   --brand        #0060AA   buttons, links, key text         (white text on it: 6.45:1)
+   --brand-hover  #004D8A   hover and pressed state          (white text on it: 8.65:1)
+   --accent       #EF7F1A   focus ring, highlights. Use DARK text on it, never white (white on it: 2.72:1)
+   --page         #F4F8FC   page background
+   --ink          #0E1726   main text
+   --muted        #5B6B80   secondary text (5.10:1 on the page background)
+   --line         #D5E1EE   card borders
+*/
+:root {
+  --brand: #0060aa;
+  --brand-hover: #004d8a;
+  --accent: #ef7f1a;
+  --page: #f4f8fc;
+  --ink: #0e1726;
+  --muted: #5b6b80;
+  --line: #d5e1ee;
+}
+
+body {
+  font-family: var(--font-body), system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: var(--page);
+  color: var(--ink);
+}
+
+.font-heading {
+  font-family: var(--font-heading), var(--font-body), system-ui, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+::selection {
+  background: rgb(0 96 170 / 0.18);
+}

@@ -53,7 +53,7 @@ test("a complete upload passes; SGT reg no and year are optional", () => {
   assert.deepEqual(validateUpload({ ...good, graduationYear: "", sgtRegNo: "" }, pdf, NOW), {});
 });
 
-test("upload rejects roles outside the 19 SGT goal roles, missing consent and bad fields", () => {
+test("upload rejects roles outside the SGT goal roles, missing consent and bad fields", () => {
   const e = validateUpload({ ...good, targetRole: "Plumber", consent: false, email: "nope", phone: "1", fullName: "A", graduationYear: "1990", sgtRegNo: "!!" }, null, NOW);
   for (const k of ["targetRole", "consent", "email", "phone", "fullName", "graduationYear", "sgtRegNo", "resume"]) assert.ok(k in e, k);
 });

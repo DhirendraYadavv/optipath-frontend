@@ -17,6 +17,7 @@ export const PRIVACY_NOTICE =
 
 /** Talent Pool and recruiter endpoints. All go through API_URL (NEXT_PUBLIC_API_URL). */
 export const TALENT_UPLOAD_URL = `${API_URL}/talent/upload`;
+export const TALENT_ME_URL = `${API_URL}/talent/me`;
 export const RECRUITER_VERIFY_URL = `${API_URL}/recruiter/verify`;
 export const TALENT_SEARCH_URL = `${API_URL}/talent/search`;
 /** GET {TALENT_RESUME_URL}/{candidateId} returns the resume file for a verified recruiter. */

@@ -55,12 +55,12 @@ function GapAnalysisContent() {
   const ideas = useMemo(() => (role ? projectIdeasFor(detectRoleFamily(role)).slice(0, 3) : []), [role]);
 
   if (!loaded || !candidate) {
-    return <div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading...</div>;
+    return <div className="min-h-screen bg-[#F4F8FC] p-12 text-center text-xs text-[#5B6B80]">Loading...</div>;
   }
   if (!role || !analysis) {
     return (
-      <div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">
-        No goal selected. <Link href="/onboard" className="font-bold text-[#831843] underline">Choose your goal</Link>
+      <div className="min-h-screen bg-[#F4F8FC] p-12 text-center text-xs text-[#5B6B80]">
+        No goal selected. <Link href="/onboard" className="font-bold text-[#0060AA] underline">Choose your goal</Link>
       </div>
     );
   }
@@ -75,24 +75,24 @@ function GapAnalysisContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
+    <div className="min-h-screen bg-[#F4F8FC] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Top bar */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
-          <Link href="/onboard" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#D9E4F0]">
+          <Link href="/onboard" className="inline-flex items-center gap-2 text-xs font-semibold text-[#5B6B80] hover:text-[#0060AA]">
             <ArrowLeft className="w-4 h-4" /> Edit my answers
           </Link>
-          <Link href="/" className="text-xs font-semibold text-[#64748B] hover:text-[#831843]">Home</Link>
+          <Link href="/" className="text-xs font-semibold text-[#5B6B80] hover:text-[#0060AA]">Home</Link>
         </div>
 
         {/* Readiness */}
-        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs space-y-6">
+        <div className="bg-white rounded-3xl border border-[#D5E1EE] p-8 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
             <div className="space-y-2">
-              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#831843]">Your readiness</span>
-              <h1 className="font-serif text-3xl font-bold leading-tight">
+              <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#0060AA]">Your readiness</span>
+              <h1 className="font-heading text-3xl font-bold leading-tight">
                 {analysis.percentage === 0 ? "You are at the starting line for" : `You are ${analysis.percentage}% ready for`}{" "}
-                <span className="italic text-[#831843]">{role}</span>
+                <span className="italic text-[#0060AA]">{role}</span>
               </h1>
               <p className="text-xs text-[#526173]">
                 Based on required core skills match: {analysis.covered.length} of {analysis.required.length} skills for the{" "}
@@ -100,20 +100,20 @@ function GapAnalysisContent() {
                 {analysis.confidence === "low" && " This occupation has no dedicated template, so general software fundamentals are used."}
                 {analysis.confidence === "medium" && " This is the closest standard template for the role."}
               </p>
-              <p className="text-[11px] text-[#64748B]">
+              <p className="text-[11px] text-[#5B6B80]">
                 {candidate.fullName}
                 {candidate.profession ? ` · ${candidate.profession}` : ""}
                 {candidate.experienceYears != null ? ` · ${candidate.experienceYears} yr experience` : ""} · {qualificationLabel(candidate.qualification)}
               </p>
             </div>
-            <div className="text-center p-5 bg-[#FAF8F5] rounded-3xl border border-[#EAE4D9] min-w-[140px]">
-              <span className="text-5xl font-serif font-bold text-[#831843]">{analysis.percentage}%</span>
-              <span className="text-[10px] font-bold text-[#64748B] uppercase block mt-1">Ready</span>
+            <div className="text-center p-5 bg-[#F4F8FC] rounded-3xl border border-[#DCE7F2] min-w-[140px]">
+              <span className="text-5xl font-heading font-bold text-[#0060AA]">{analysis.percentage}%</span>
+              <span className="text-[10px] font-bold text-[#5B6B80] uppercase block mt-1">Ready</span>
             </div>
           </div>
 
-          <div className="w-full h-2.5 bg-[#EFEBE4] rounded-full overflow-hidden" role="progressbar" aria-valuenow={analysis.percentage} aria-valuemin={0} aria-valuemax={100}>
-            <div className="h-full bg-[#831843] rounded-full" style={{ width: `${analysis.percentage}%` }} />
+          <div className="w-full h-2.5 bg-[#E8EFF7] rounded-full overflow-hidden" role="progressbar" aria-valuenow={analysis.percentage} aria-valuemin={0} aria-valuemax={100}>
+            <div className="h-full bg-[#0060AA] rounded-full" style={{ width: `${analysis.percentage}%` }} />
           </div>
 
           {analysis.covered.length > 0 && (
@@ -146,8 +146,8 @@ function GapAnalysisContent() {
             You list every core skill for this role. Focus on proof: projects and interview practice. Use the buttons at the bottom to find openings.
           </div>
         ) : !unlocked ? (
-          <div className="bg-white rounded-3xl border-2 border-[#831843] p-8 shadow-md text-center space-y-4">
-            <h2 className="font-serif text-2xl font-bold">
+          <div className="bg-white rounded-3xl border-2 border-[#0060AA] p-8 shadow-md text-center space-y-4">
+            <h2 className="font-heading text-2xl font-bold">
               What about the other {remaining}%?
             </h2>
             <p className="text-xs text-[#526173] max-w-lg mx-auto">
@@ -156,11 +156,11 @@ function GapAnalysisContent() {
             <button
               onClick={requestDetails}
               disabled={!authReady}
-              className="px-10 py-4 bg-[#831843] hover:bg-[#701237] disabled:opacity-60 text-white font-bold text-sm tracking-wide rounded-full shadow-lg transition inline-flex items-center gap-2 cursor-pointer"
+              className="px-10 py-4 bg-[#0060AA] hover:bg-[#004D8A] disabled:opacity-60 text-white font-bold text-sm tracking-wide rounded-full shadow-lg transition inline-flex items-center gap-2 cursor-pointer"
             >
               {!user && <Lock className="w-4 h-4" />} Show me what&apos;s missing <ArrowRight className="w-4 h-4" />
             </button>
-            {!user && <p className="text-[11px] text-[#64748B]">You will be asked to sign in with Google first.</p>}
+            {!user && <p className="text-[11px] text-[#5B6B80]">You will be asked to sign in with Google first.</p>}
           </div>
         ) : (
           <>
@@ -169,7 +169,7 @@ function GapAnalysisContent() {
               <div className="flex items-center justify-between pb-3 border-b border-rose-100">
                 <div className="flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-rose-700" />
-                  <h3 className="font-serif font-bold text-lg text-rose-950">What is missing ({analysis.missing.length})</h3>
+                  <h3 className="font-heading font-bold text-lg text-rose-950">What is missing ({analysis.missing.length})</h3>
                 </div>
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -196,29 +196,29 @@ function GapAnalysisContent() {
 
             {/* B. Programmes */}
             {evaluation && (
-              <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-4">
-                <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#EAE4D9]">
+              <div className="bg-white rounded-3xl border border-[#D5E1EE] p-6 shadow-xs space-y-4">
+                <div className="flex items-center justify-between gap-3 pb-3 border-b border-[#DCE7F2]">
                   <div className="flex items-center gap-2 min-w-0">
-                    <GraduationCap className="w-5 h-5 text-[#831843] shrink-0" />
-                    <h3 className="font-serif font-bold text-lg">SGT Online programmes for your level</h3>
+                    <GraduationCap className="w-5 h-5 text-[#0060AA] shrink-0" />
+                    <h3 className="font-heading font-bold text-lg">SGT Online programmes for your level</h3>
                   </div>
                   <div className="relative w-28 sm:w-36 h-10 shrink-0">
                     <Image src="/sgt-online-logo.png" alt="SGT Online University" fill sizes="144px" className="object-contain object-right" />
                   </div>
                 </div>
 
-                {evaluation.note && <p className="text-xs text-[#526173] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3">{evaluation.note}</p>}
+                {evaluation.note && <p className="text-xs text-[#526173] bg-[#F4F8FC] border border-[#DCE7F2] rounded-xl p-3">{evaluation.note}</p>}
 
                 <div className="space-y-4">
                   {evaluation.fits.map((fit) => (
-                    <div key={fit.key} className={`rounded-2xl p-5 space-y-3 border ${fit.recommended ? "border-2 border-[#831843] bg-rose-50/30" : "border-[#E5DFD5] bg-[#FAF8F5]"}`}>
+                    <div key={fit.key} className={`rounded-2xl p-5 space-y-3 border ${fit.recommended ? "border-2 border-[#0060AA] bg-sky-50/70" : "border-[#D5E1EE] bg-[#F4F8FC]"}`}>
                       <div className="flex flex-wrap items-start justify-between gap-2">
                         <div>
-                          {fit.recommended && <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-[#831843] text-white uppercase">Recommended for you</span>}
-                          <h4 className="font-serif font-bold text-base mt-1">{fit.program.name}</h4>
-                          <p className="text-[11px] text-[#64748B]">{fit.program.duration}</p>
+                          {fit.recommended && <span className="text-[9px] font-mono font-bold px-2 py-0.5 rounded bg-[#0060AA] text-white uppercase">Recommended for you</span>}
+                          <h4 className="font-heading font-bold text-base mt-1">{fit.program.name}</h4>
+                          <p className="text-[11px] text-[#5B6B80]">{fit.program.duration}</p>
                         </div>
-                        <span className="text-xs font-bold text-[#831843]">
+                        <span className="text-xs font-bold text-[#0060AA]">
                           Teaches {fit.covered.length} of your {analysis.missing.length} gaps
                         </span>
                       </div>
@@ -237,13 +237,13 @@ function GapAnalysisContent() {
                       )}
 
                       {fit.unmappedSemesters.length > 0 && (
-                        <p className="text-[11px] text-[#64748B]">
+                        <p className="text-[11px] text-[#5B6B80]">
                           Syllabus for Semester{fit.unmappedSemesters.length > 1 ? "s" : ""} {fit.unmappedSemesters.join(", ")} is not loaded here, so the count above may be higher.
                         </p>
                       )}
 
                       <div className="flex flex-wrap gap-3 pt-1">
-                        <a href={SGT_ONLINE_APPLY} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 bg-[#831843] hover:bg-[#701237] text-white font-bold text-xs rounded-xl transition">
+                        <a href={SGT_ONLINE_APPLY} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 bg-[#0060AA] hover:bg-[#004D8A] text-white font-bold text-xs rounded-xl transition">
                           Register on SGT Online
                         </a>
                         <ProgramGuideLink programKey={fit.key} />
@@ -256,8 +256,8 @@ function GapAnalysisContent() {
 
             {/* C. Do it yourself */}
             {evaluation && (
-              <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-3">
-                <h3 className="font-serif font-bold text-lg">Learn on your own</h3>
+              <div className="bg-white rounded-3xl border border-[#D5E1EE] p-6 shadow-xs space-y-3">
+                <h3 className="font-heading font-bold text-lg">Learn on your own</h3>
                 {evaluation.selfLearn.length === 0 ? (
                   <p className="text-xs text-emerald-800 font-semibold">The recommended programme&apos;s mapped syllabus teaches every gap listed above.</p>
                 ) : (
@@ -282,12 +282,12 @@ function GapAnalysisContent() {
 
             {/* D. Projects */}
             {ideas.length > 0 && (
-              <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-3">
-                <h3 className="font-serif font-bold text-lg">Projects that build the missing skills</h3>
+              <div className="bg-white rounded-3xl border border-[#D5E1EE] p-6 shadow-xs space-y-3">
+                <h3 className="font-heading font-bold text-lg">Projects that build the missing skills</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                   {ideas.map((p, i) => (
-                    <div key={p.title} className="p-4 bg-[#FAF8F5] border border-[#EAE4D9] rounded-2xl space-y-2">
-                      <h4 className="font-serif font-bold text-sm">{i + 1}. {p.title}</h4>
+                    <div key={p.title} className="p-4 bg-[#F4F8FC] border border-[#DCE7F2] rounded-2xl space-y-2">
+                      <h4 className="font-heading font-bold text-sm">{i + 1}. {p.title}</h4>
                       <p className="text-xs text-[#526173] leading-relaxed">{p.summary}</p>
                       <div className="flex flex-wrap gap-1.5">
                         {p.skills.map((s) => (
@@ -313,7 +313,7 @@ function ProgramGuideLink({ programKey }: { programKey: string }) {
   const p = PROGRAMS.find((x) => x.key === programKey);
   if (!p) return null;
   return (
-    <a href={p.guideUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 bg-white border border-[#DCD6CC] hover:border-[#831843] text-[#831843] font-bold text-xs rounded-xl transition">
+    <a href={p.guideUrl} target="_blank" rel="noopener noreferrer" className="px-5 py-2.5 bg-white border border-[#CBD9E9] hover:border-[#0060AA] text-[#0060AA] font-bold text-xs rounded-xl transition">
       Program guide
     </a>
   );
@@ -321,7 +321,7 @@ function ProgramGuideLink({ programKey }: { programKey: string }) {
 
 export default function GapAnalysisPage() {
   return (
-    <Suspense fallback={<div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading...</div>}>
+    <Suspense fallback={<div className="min-h-screen bg-[#F4F8FC] p-12 text-center text-xs text-[#5B6B80]">Loading...</div>}>
       <GapAnalysisContent />
     </Suspense>
   );

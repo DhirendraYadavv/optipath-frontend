@@ -25,7 +25,7 @@ function CourseRow({ course, role, tone }: { course: string; role: string; tone:
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-1 mt-1.5">
           {tags.map((t) => (
-            <span key={t} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white border border-[#DDD8CE] text-[#831843]">
+            <span key={t} className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-white border border-[#C8D7E8] text-[#0060AA]">
               Helps: {t}
             </span>
           ))}
@@ -75,17 +75,17 @@ export default function DashboardPage() {
   };
 
   if (!ready || !student || !view) {
-    return <div className="min-h-screen bg-[#FAF8F5] p-12 text-center text-xs text-[#64748B]">Loading your dashboard...</div>;
+    return <div className="min-h-screen bg-[#F4F8FC] p-12 text-center text-xs text-[#5B6B80]">Loading your dashboard...</div>;
   }
 
   const selfLearn = analysis?.rows.filter((r) => r.status === "self_learn") ?? [];
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
+    <div className="min-h-screen bg-[#F4F8FC] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
       <div className="max-w-5xl mx-auto space-y-8">
         {/* Top bar */}
-        <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#D9E4F0]">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#5B6B80] hover:text-[#0060AA]">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
           <button onClick={signOut} className="inline-flex items-center gap-1 text-xs text-rose-700 hover:underline font-semibold cursor-pointer">
@@ -101,29 +101,29 @@ export default function DashboardPage() {
         )}
 
         {/* 1. Profile & goal */}
-        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs space-y-6">
+        <div className="bg-white rounded-3xl border border-[#D5E1EE] p-8 shadow-xs space-y-6">
           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-50 border border-emerald-200 rounded-full text-[11px] font-mono font-bold text-emerald-800">
                 <span className="w-2 h-2 rounded-full bg-emerald-600" /> SGT student record
               </div>
-              <h1 className="font-serif text-3xl font-bold">{student.fullName}</h1>
+              <h1 className="font-heading text-3xl font-bold">{student.fullName}</h1>
               <p className="text-xs text-[#526173]">
                 Registration No: <b className="font-mono text-[#0E1726]">{student.registrationNo}</b> &bull; Program:{" "}
                 <b className="text-[#0E1726]">{view.program ? view.program.name : student.program || "Not available"}</b>
               </p>
             </div>
-            <div className="text-center p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9] min-w-[130px]">
-              <span className="text-[10px] text-[#64748B] uppercase font-bold block">Current semester</span>
-              <span className="font-serif text-2xl font-bold text-[#831843]">
+            <div className="text-center p-4 bg-[#F4F8FC] rounded-2xl border border-[#DCE7F2] min-w-[130px]">
+              <span className="text-[10px] text-[#5B6B80] uppercase font-bold block">Current semester</span>
+              <span className="font-heading text-2xl font-bold text-[#0060AA]">
                 {student.currentSemester}
-                {view.totalSemesters > 0 && <span className="text-sm text-[#64748B]"> / {view.totalSemesters}</span>}
+                {view.totalSemesters > 0 && <span className="text-sm text-[#5B6B80]"> / {view.totalSemesters}</span>}
               </span>
             </div>
           </div>
 
-          <div className="space-y-2 pt-4 border-t border-[#EAE4D9]">
-            <label className="text-[11px] font-bold uppercase tracking-wider text-[#831843] flex items-center gap-1.5">
+          <div className="space-y-2 pt-4 border-t border-[#DCE7F2]">
+            <label className="text-[11px] font-bold uppercase tracking-wider text-[#0060AA] flex items-center gap-1.5">
               <Target className="w-4 h-4" /> Your goal
             </label>
             <RoleSearch value={student.goal} onChange={setGoal} suggested={view.program?.careerRoles ?? []} />
@@ -131,14 +131,14 @@ export default function DashboardPage() {
 
           {analysis && (
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9]">
-                <span className="text-[10px] text-[#64748B] uppercase font-bold block">Covered by completed courses</span>
-                <span className="font-serif text-3xl font-bold text-emerald-800">{analysis.readyNowPercent}%</span>
+              <div className="p-4 bg-[#F4F8FC] rounded-2xl border border-[#DCE7F2]">
+                <span className="text-[10px] text-[#5B6B80] uppercase font-bold block">Covered by completed courses</span>
+                <span className="font-heading text-3xl font-bold text-emerald-800">{analysis.readyNowPercent}%</span>
                 <span className="text-[11px] text-[#526173] block mt-0.5">{analysis.counts.completed} of {analysis.total} skills this goal needs</span>
               </div>
-              <div className="p-4 bg-[#FAF8F5] rounded-2xl border border-[#EAE4D9]">
-                <span className="text-[10px] text-[#64748B] uppercase font-bold block">After your mapped syllabus</span>
-                <span className="font-serif text-3xl font-bold text-[#831843]">{analysis.afterSyllabusPercent}%</span>
+              <div className="p-4 bg-[#F4F8FC] rounded-2xl border border-[#DCE7F2]">
+                <span className="text-[10px] text-[#5B6B80] uppercase font-bold block">After your mapped syllabus</span>
+                <span className="font-heading text-3xl font-bold text-[#0060AA]">{analysis.afterSyllabusPercent}%</span>
                 <span className="text-[11px] text-[#526173] block mt-0.5">
                   includes this semester and upcoming semesters we have the syllabus for
                 </span>
@@ -157,13 +157,13 @@ export default function DashboardPage() {
         {analysis && (
           <>
             {/* 2. Important topics */}
-            <div className="bg-white rounded-3xl border border-[#E5DFD5] p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between pb-3 border-b border-[#EAE4D9]">
+            <div className="bg-white rounded-3xl border border-[#D5E1EE] p-6 shadow-xs space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-[#DCE7F2]">
                 <div className="flex items-center gap-2">
-                  <ListChecks className="w-4 h-4 text-[#831843]" />
-                  <h3 className="font-serif font-bold text-base">Topics that matter for this goal</h3>
+                  <ListChecks className="w-4 h-4 text-[#0060AA]" />
+                  <h3 className="font-heading font-bold text-base">Topics that matter for this goal</h3>
                 </div>
-                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-[#FAF8F5] border border-[#DDD8CE] text-[#526173]">
+                <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-[#F4F8FC] border border-[#C8D7E8] text-[#526173]">
                   {analysis.familyLabel}
                 </span>
               </div>
@@ -197,7 +197,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between pb-2 border-b border-emerald-100">
             <div className="flex items-center gap-2">
               <CheckCircle2 className="w-4 h-4 text-emerald-700" />
-              <h3 className="font-serif font-bold text-base text-emerald-950">Completed ({view.completed.courses.length})</h3>
+              <h3 className="font-heading font-bold text-base text-emerald-950">Completed ({view.completed.courses.length})</h3>
             </div>
             <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-emerald-100 text-emerald-900">
               {view.completed.source === "backend" ? "Verified record" : view.completed.source === "catalog" ? "From syllabus" : "None yet"}
@@ -216,7 +216,7 @@ export default function DashboardPage() {
           <div className="flex items-center justify-between pb-2 border-b border-amber-100">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-amber-700" />
-              <h3 className="font-serif font-bold text-base text-amber-950">In progress &bull; Semester {student.currentSemester}</h3>
+              <h3 className="font-heading font-bold text-base text-amber-950">In progress &bull; Semester {student.currentSemester}</h3>
             </div>
           </div>
           {view.inProgress.loaded ? (
@@ -234,7 +234,7 @@ export default function DashboardPage() {
         <div className="bg-white rounded-3xl border border-sky-200 p-6 shadow-xs space-y-4">
           <div className="flex items-center gap-2 pb-2 border-b border-sky-100">
             <Hourglass className="w-4 h-4 text-sky-700" />
-            <h3 className="font-serif font-bold text-base text-sky-950">Coming up in later semesters</h3>
+            <h3 className="font-heading font-bold text-base text-sky-950">Coming up in later semesters</h3>
           </div>
           {view.upcoming.map((g) => (
             <div key={g.semester} className="space-y-2">
@@ -247,7 +247,7 @@ export default function DashboardPage() {
             </div>
           ))}
           {view.unmappedSemesters.length > 0 && (
-            <p className="text-xs text-[#526173] bg-[#FAF8F5] border border-[#EAE4D9] rounded-xl p-3">
+            <p className="text-xs text-[#526173] bg-[#F4F8FC] border border-[#DCE7F2] rounded-xl p-3">
               Syllabus for Semester{view.unmappedSemesters.length > 1 ? "s" : ""} {view.unmappedSemesters.join(", ")} not yet loaded.
               Topics from those semesters are not counted above, so some items listed under &ldquo;learn on your own&rdquo; may be covered later in your degree.
             </p>
@@ -263,7 +263,7 @@ export default function DashboardPage() {
             <div className="flex items-center justify-between pb-2 border-b border-rose-100">
               <div className="flex items-center gap-2">
                 <AlertTriangle className="w-4 h-4 text-rose-700" />
-                <h3 className="font-serif font-bold text-base text-rose-950">Learn on your own ({selfLearn.length})</h3>
+                <h3 className="font-heading font-bold text-base text-rose-950">Learn on your own ({selfLearn.length})</h3>
               </div>
               <span className="text-[10px] font-mono font-bold px-2.5 py-0.5 rounded bg-rose-100 text-rose-900 uppercase">Action needed</span>
             </div>

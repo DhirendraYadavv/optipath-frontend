@@ -19,7 +19,7 @@ const POPULAR_ROLES = [
   "Blockchain & Smart Contract Developer",
 ];
 
-const inputCls = "w-full px-4 py-2.5 rounded-xl border border-[#DCD6CC] text-xs focus:outline-none focus:border-[#831843] bg-white";
+const inputCls = "w-full px-4 py-2.5 rounded-xl border border-[#CBD9E9] text-xs focus:outline-none focus:border-[#0060AA] bg-white";
 const labelCls = "text-xs font-bold text-[#526173] block mb-1";
 
 interface FormState {
@@ -106,25 +106,25 @@ function OnboardingForm({ existing }: { existing: Record<string, unknown> | null
   };
 
   return (
-    <div className="min-h-screen bg-[#FAF8F5] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
+    <div className="min-h-screen bg-[#F4F8FC] text-[#0E1726] font-sans antialiased p-6 sm:p-12">
       <div className="max-w-3xl mx-auto space-y-8">
-        <div className="flex items-center justify-between pb-4 border-b border-[#E8E2D8]">
-          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#64748B] hover:text-[#831843]">
+        <div className="flex items-center justify-between pb-4 border-b border-[#D9E4F0]">
+          <Link href="/" className="inline-flex items-center gap-2 text-xs font-semibold text-[#5B6B80] hover:text-[#0060AA]">
             <ArrowLeft className="w-4 h-4" /> Back to home
           </Link>
-          <span className="text-xs font-mono font-bold text-[#831843] uppercase tracking-wider">Non-SGT candidate</span>
+          <span className="text-xs font-mono font-bold text-[#0060AA] uppercase tracking-wider">Non-SGT candidate</span>
         </div>
 
-        <div className="bg-white rounded-3xl border border-[#E5DFD5] p-8 shadow-xs">
+        <div className="bg-white rounded-3xl border border-[#D5E1EE] p-8 shadow-xs">
           <div className="space-y-1 mb-8">
-            <h1 className="font-serif text-3xl font-bold">Check how ready you are</h1>
+            <h1 className="font-heading text-3xl font-bold">Check how ready you are</h1>
             <p className="text-xs text-[#526173]">Tell us where you are today and where you want to go. It takes about a minute.</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* About you */}
             <div className="space-y-4">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#0060AA] flex items-center gap-2">
                 <User className="w-4 h-4" /> 1. About you
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -140,8 +140,8 @@ function OnboardingForm({ existing }: { existing: Record<string, unknown> | null
             </div>
 
             {/* Background */}
-            <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
+            <div className="space-y-4 pt-4 border-t border-[#DCE7F2]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#0060AA] flex items-center gap-2">
                 <Briefcase className="w-4 h-4" /> 2. Your background
               </h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -168,8 +168,8 @@ function OnboardingForm({ existing }: { existing: Record<string, unknown> | null
             </div>
 
             {/* Skills */}
-            <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
+            <div className="space-y-4 pt-4 border-t border-[#DCE7F2]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#0060AA] flex items-center gap-2">
                 <Wrench className="w-4 h-4" /> 3. Skills and tools you know
               </h3>
               <div>
@@ -183,13 +183,13 @@ function OnboardingForm({ existing }: { existing: Record<string, unknown> | null
                   placeholder="e.g. Python, MySQL, Git, React   |   or   |   Excel, Tally, GST, Digital Marketing"
                   className={inputCls}
                 />
-                <p className="text-[11px] text-[#64748B] mt-1">Your readiness score is based on these. Leave it empty if you are just starting.</p>
+                <p className="text-[11px] text-[#5B6B80] mt-1">Your readiness score is based on these. Leave it empty if you are just starting.</p>
               </div>
             </div>
 
             {/* Goal */}
-            <div className="space-y-4 pt-4 border-t border-[#EAE4D9]">
-              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#831843] flex items-center gap-2">
+            <div className="space-y-4 pt-4 border-t border-[#DCE7F2]">
+              <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-[#0060AA] flex items-center gap-2">
                 <Target className="w-4 h-4" /> 4. Your goal
               </h3>
               <RoleSearch value={form.targetRole} onChange={(r) => set("targetRole", r)} suggested={POPULAR_ROLES} />
@@ -201,7 +201,7 @@ function OnboardingForm({ existing }: { existing: Record<string, unknown> | null
 
             <button
               type="submit"
-              className="w-full py-4 bg-[#831843] hover:bg-[#701237] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
+              className="w-full py-4 bg-[#0060AA] hover:bg-[#004D8A] text-white font-bold text-xs uppercase tracking-wider rounded-2xl shadow-md transition flex items-center justify-center gap-2 cursor-pointer"
             >
               Go ahead <ArrowRight className="w-4 h-4" />
             </button>
