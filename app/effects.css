@@ -13,12 +13,12 @@ textarea,
 summary,
 [role="button"] {
   transition:
-    background-color 0.2s ease,
-    color 0.2s ease,
-    border-color 0.2s ease,
-    box-shadow 0.2s ease,
-    opacity 0.2s ease,
-    transform 0.18s ease;
+    background-color 0.25s ease,
+    color 0.25s ease,
+    border-color 0.25s ease,
+    box-shadow 0.3s ease,
+    opacity 0.25s ease,
+    transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* pill buttons lift slightly on hover and press in on click */
@@ -53,7 +53,7 @@ button.rounded-3xl:not(:disabled):hover {
    reference frame for every pop-up inside it (the position: fixed ones), so they centre on the whole page height
    instead of on the screen, and open half-way down the page. */
 .page-enter {
-  animation: page-enter 0.3s ease-out backwards;
+  animation: page-enter 0.5s ease-out backwards;
 }
 
 @keyframes page-enter {
@@ -67,16 +67,16 @@ button.rounded-3xl:not(:disabled):hover {
 
 /* ---- sign-in modal ---- */
 .modal-backdrop {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in 0.32s ease-out both;
 }
 .modal-backdrop[data-closing="true"] {
-  animation: fade-out 0.18s ease-in both;
+  animation: fade-out 0.22s ease-in both;
 }
 .modal-panel {
-  animation: modal-in 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: modal-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .modal-backdrop[data-closing="true"] .modal-panel {
-  animation: modal-out 0.18s ease-in both;
+  animation: modal-out 0.22s ease-in both;
 }
 
 @keyframes fade-in {
@@ -88,12 +88,12 @@ button.rounded-3xl:not(:disabled):hover {
   to { opacity: 0; }
 }
 @keyframes modal-in {
-  from { opacity: 0; transform: translateY(14px) scale(0.96); }
+  from { opacity: 0; transform: translateY(28px) scale(0.94); }
   to { opacity: 1; transform: none; }
 }
 @keyframes modal-out {
   from { opacity: 1; transform: none; }
-  to { opacity: 0; transform: translateY(8px) scale(0.97); }
+  to { opacity: 0; transform: translateY(12px) scale(0.96); }
 }
 
 /* ---- the name chip pops in after sign-in ---- */
@@ -137,37 +137,37 @@ button.rounded-3xl:not(:disabled):hover {
 /* ---- every pop-up window (role="dialog" aria-modal="true") fades in and its box scales up. The sign-in box has its
    own version above, with a closing animation. The animation is on the box, never on the page wrapper. ---- */
 [role="dialog"][aria-modal="true"]:not(.modal-backdrop) {
-  animation: fade-in 0.2s ease-out both;
+  animation: fade-in 0.32s ease-out both;
 }
 [role="dialog"][aria-modal="true"]:not(.modal-backdrop) > :first-child {
-  animation: modal-in 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: modal-in 0.42s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* closing: the same box fades and shrinks away before it is removed (lib/useExit.ts adds data-closing="true") */
 [role="dialog"][aria-modal="true"][data-closing="true"]:not(.modal-backdrop) {
-  animation: fade-out 0.18s ease-in both;
+  animation: fade-out 0.22s ease-in both;
   pointer-events: none;
 }
 [role="dialog"][aria-modal="true"][data-closing="true"]:not(.modal-backdrop) > :first-child {
-  animation: modal-out 0.18s ease-in both;
+  animation: modal-out 0.22s ease-in both;
 }
 
 /* ---- messages (errors, success notes, status lines) ease in instead of appearing suddenly ---- */
 [role="alert"],
 [role="status"]:not(.auth-toast) {
-  animation: reveal-in 0.28s ease-out both;
+  animation: reveal-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 /* ---- content that appears after an action (results, reports, dropdown lists) ---- */
 .reveal {
-  animation: reveal-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: reveal-in 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 .dropdown-reveal {
   transform-origin: top center;
-  animation: dropdown-in 0.2s cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation: dropdown-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 @keyframes reveal-in {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: none; }
 }
 @keyframes dropdown-in {
@@ -181,8 +181,8 @@ button.rounded-3xl:not(:disabled):hover {
   grid-template-rows: 0fr;
   opacity: 0;
   transition:
-    grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1),
-    opacity 0.25s ease;
+    grid-template-rows 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 0.4s ease;
 }
 .accordion-panel[data-open="true"] {
   grid-template-rows: 1fr;
@@ -193,7 +193,7 @@ button.rounded-3xl:not(:disabled):hover {
   min-height: 0;
 }
 .accordion-chevron {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .accordion-chevron[data-open="true"] {
   transform: rotate(180deg);
@@ -219,4 +219,27 @@ button:not(:disabled):not(.rounded-full):not([aria-label="Close"]):hover {
 @keyframes click-pulse {
   from { opacity: 0.85; transform: scale(0.4); }
   to { opacity: 0; transform: scale(3.2); }
+}
+
+
+/* ---- sections and cards glide in as you scroll to them (components/ScrollReveal.tsx) ----
+   Only hidden once the script has run (html.reveal-ready), so nothing stays invisible if scripts are blocked.
+   Never put data-reveal on a box that contains a pop-up: the transform would break the pop-up's centring. */
+html.reveal-ready [data-reveal] {
+  opacity: 0;
+  transform: translateY(32px);
+  transition:
+    opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html.reveal-ready [data-reveal].in-view {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.reveal-ready [data-reveal] {
+    opacity: 1;
+    transform: none;
+  }
 }

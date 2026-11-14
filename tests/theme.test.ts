@@ -109,7 +109,63 @@ test("every pop-up plays a closing animation before it is removed", () => {
   }
 });
 
-test("the closing time in code matches the CSS (0.18s)", () => {
-  assert.match(readFileSync("lib/useExit.ts", "utf8"), /EXIT_MS\s*=\s*180/);
-  assert.match(readFileSync("app/effects.css", "utf8"), /data-closing="true"\][^}]*\n?[^}]*animation:\s*fade-out 0\.18s/);
+test("the closing time in code matches the CSS (0.22s)", () => {
+  assert.match(readFileSync("lib/useExit.ts", "utf8"), /EXIT_MS\s*=\s*220/);
+  assert.match(readFileSync("app/effects.css", "utf8"), /data-closing="true"\][^}]*\n?[^}]*animation:\s*fade-out 0\.22s/);
+});
+
+test("the sign-in control is in one shared header that every page gets", () => {
+  const layout = readFileSync("app/layout.tsx", "utf8");
+  assert.match(layout, /<SiteHeader \/>/);
+  const header = readFileSync("components/SiteHeader.tsx", "utf8");
+  assert.match(header, /openSignIn\(\)/);
+  assert.match(header, /Sign out/);
+  assert.match(header, /Talent Gateway/);
+  // the home page no longer carries a second header of its own
+  assert.doesNotMatch(readFileSync("app/page.tsx", "utf8"), /<header\b/);
+});
+
+test("the header never contains a pop-up (its backdrop-filter would break the pop-up's position)", () => {
+  const header = readFileSync("components/SiteHeader.tsx", "utf8");
+  const inside = header.slice(header.indexOf("<header"), header.indexOf("</header>"));
+  assert.doesNotMatch(inside, /SalaryEstimatorModal|fixed inset-0/);
+  assert.match(header, /<\/header>\s*\n\s*\{showSalary && <SalaryEstimatorModal/);
+});
+
+test("resume uploading lives in the Talent Gateway only: no upload button on the home page", () => {
+  const home = readFileSync("app/page.tsx", "utf8");
+  assert.doesNotMatch(home, /Upload Resume/);
+  assert.doesNotMatch(home, /portal\/student/);
+});
+
+test("scroll effects: content glides in, and nothing that holds a pop-up is animated that way", () => {
+  const fx = readFileSync("app/effects.css", "utf8");
+  assert.match(fx, /html\.reveal-ready \[data-reveal\]/);
+  assert.match(fx, /\[data-reveal\]\.in-view/);
+  assert.match(readFileSync("app/layout.tsx", "utf8"), /<ScrollReveal \/>/);
+  const walk = (dir: string): string[] => readdirSync(dir).flatMap((f) => (statSync(join(dir, f)).isDirectory() ? walk(join(dir, f)) : f.endsWith(".tsx") ? [join(dir, f)] : []));
+  for (const f of [...walk("app"), ...walk("components")]) {
+    const src = readFileSync(f, "utf8");
+    assert.ok(!/data-reveal[^>]*>\s*[\s\S]{0,60}fixed inset-0/.test(src), `${f}: a data-reveal box wraps a pop-up`);
+  }
+});
+
+test("the motion is soft: pop-ups take at least 0.35s to open and content at least 0.4s to appear", () => {
+  const fx = readFileSync("app/effects.css", "utf8");
+  assert.match(fx, /modal-in 0\.4\ds/);
+  assert.match(fx, /\.reveal \{\s*animation: reveal-in 0\.5\ds/);
+  assert.match(fx, /grid-template-rows 0\.4\ds/);
+});
+
+test("scroll effects switch on before the first paint and never leave content hidden without scripts", () => {
+  const layout = readFileSync("app/layout.tsx", "utf8");
+  assert.match(layout, /classList\.add\('reveal-ready'\)/);
+  assert.match(layout, /<noscript>[\s\S]*\[data-reveal\]\{opacity:1!important/);
+  assert.match(layout, /suppressHydrationWarning/);
+});
+
+test("signing out clears the login and then refreshes the page", () => {
+  const header = readFileSync("components/SiteHeader.tsx", "utf8");
+  assert.match(header, /const handleSignOut = \(\) => \{\s*signOut\(\);\s*window\.location\.reload\(\);/);
+  assert.match(header, /onClick=\{handleSignOut\}/);
 });

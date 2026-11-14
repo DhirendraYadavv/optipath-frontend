@@ -2,8 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-/** How long the closing animation runs. Keep in step with the 0.18s in effects.css. */
-export const EXIT_MS = 180;
+/** How long the closing animation runs. Keep in step with the 0.22s closing animations in effects.css. */
+export const EXIT_MS = 220;
 
 /**
  * For a pop-up whose open/closed state lives in the parent: keep it on screen while it plays its closing animation.

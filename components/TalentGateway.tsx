@@ -9,7 +9,7 @@ function Card({ card, icon: Icon, tone }: { card: GatewayCard; icon: typeof Buil
   const accent = tone === "indigo" ? "from-indigo-500/15" : "from-cyan-500/15";
   const badge = tone === "indigo" ? "bg-indigo-50 text-indigo-900 border-indigo-200" : "bg-cyan-50 text-cyan-900 border-cyan-200";
   return (
-    <article className={`relative flex flex-col rounded-3xl border border-[#D5E1EE] bg-linear-to-br ${accent} via-white to-white p-6 sm:p-8 shadow-lg`}>
+    <article data-reveal className={`relative flex flex-col rounded-3xl border border-[#D5E1EE] bg-linear-to-br ${accent} via-white to-white p-6 sm:p-8 shadow-lg`}>
       <div className="flex items-center gap-3">
         <div className="w-12 h-12 rounded-2xl bg-white border border-[#DCE7F2] shadow-xs flex items-center justify-center shrink-0">
           <Icon className="w-6 h-6 text-[#0060AA]" />
@@ -73,7 +73,7 @@ export default function TalentGateway() {
             {GATEWAY_METRICS.map((m, i) => {
               const Icon = METRIC_ICONS[i] ?? Zap;
               return (
-                <li key={m.title} className="flex items-start gap-3 rounded-2xl border border-[#D5E1EE] bg-[#F4F8FC]/80 px-4 py-3.5">
+                <li key={m.title} data-reveal style={{ transitionDelay: `${i * 80}ms` }} className="flex items-start gap-3 rounded-2xl border border-[#D5E1EE] bg-[#F4F8FC]/80 px-4 py-3.5">
                   <Icon className="w-5 h-5 mt-0.5 shrink-0 text-[#0060AA]" />
                   <div>
                     <p className="text-sm font-bold text-[#0E1726]">{m.title}</p>

@@ -1,9 +1,11 @@
 import GoogleAuthProvider from "@/components/GoogleAuthProvider";
 import { AuthProvider } from "@/components/AuthProvider";
 import SignInModal from "@/components/SignInModal";
+import SiteHeader from "@/components/SiteHeader";
 import type { Metadata } from "next";
 import AuthToast from "@/components/AuthToast";
 import ClickPulse from "@/components/ClickPulse";
+import ScrollReveal from "@/components/ScrollReveal";
 import { Geist_Mono, Inter, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import "./theme.css";
@@ -38,14 +40,24 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en"
       className={`${headingFont.variable} ${bodyFont.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
+      <head>
+        {/* Marks the page as "scroll effects on" before the first paint, so content does not flash and then hide. */}
+        <script dangerouslySetInnerHTML={{ __html: "if('IntersectionObserver' in window)document.documentElement.classList.add('reveal-ready')" }} />
+        <noscript>
+          <style>{"[data-reveal]{opacity:1!important;transform:none!important}"}</style>
+        </noscript>
+      </head>
       <body className="min-h-full flex flex-col">
         <GoogleAuthProvider>
           <AuthProvider>
+            <SiteHeader />
             {children}
             <SignInModal />
             <AuthToast />
             <ClickPulse />
+            <ScrollReveal />
           </AuthProvider>
         </GoogleAuthProvider>
       </body>
