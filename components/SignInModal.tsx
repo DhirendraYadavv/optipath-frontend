@@ -9,6 +9,7 @@ export default function SignInModal() {
   const { signInOpen, signInReason, closeSignIn, signInWithCredential } = useAuth();
   const [error, setError] = useState("");
   const [closing, setClosing] = useState(false);
+  const [busy, setBusy] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   if (!signInOpen) return null;
@@ -21,7 +22,7 @@ export default function SignInModal() {
       setError("");
       setClosing(false);
       closeSignIn();
-    }, 180);
+    }, 220);
   };
 
   const missingClientId = !process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID;
@@ -50,10 +51,13 @@ export default function SignInModal() {
                   setError("Google did not return a sign-in token. Please try again.");
                   return;
                 }
+                setBusy(true);
                 try {
                   await signInWithCredential(res.credential);
                 } catch (e: unknown) {
                   setError(e instanceof Error && e.message ? e.message : "Sign-in failed. Please try again.");
+                } finally {
+                  setBusy(false);
                 }
               }}
               onError={() => setError("Google sign-in was cancelled or failed. Please try again.")}
@@ -61,6 +65,7 @@ export default function SignInModal() {
           </div>
         )}
 
+        {busy && <p className="mt-4 text-xs text-[#5B6B80]" role="status">Signing you in. The first sign-in can take up to a minute while our server wakes up.</p>}
         {error && <p className="mt-4 text-xs text-rose-700" role="alert">{error}</p>}
       </div>
     </div>

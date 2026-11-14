@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useCallback, useContext, useMemo, useState, useSyncExternalStore } from "react";
+import React, { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore } from "react";
 import { googleLogout } from "@react-oauth/google";
 import { API_URL } from "@/lib/siteConfig";
 
@@ -28,6 +28,8 @@ const AuthContext = createContext<AuthContextValue | null>(null);
 
 const USER_KEY = "optipath_user";
 const TOKEN_KEY = "optipath_token";
+/** The free backend host sleeps when idle and can take about a minute to wake, so confirming a sign-in may be slow. */
+export const VERIFY_TIMEOUT_MS = 45000;
 
 class RejectedSignIn extends Error {}
 
@@ -116,6 +118,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const ready = useSyncExternalStore(subscribeNever, () => true, () => false);
   const user = useMemo(() => parseStoredUser(rawUser), [rawUser]);
 
+  // Wake the backend as soon as any page opens, so it is awake by the time someone signs in or uploads.
+  useEffect(() => {
+    fetch(`${API_URL}/`, { mode: "no-cors" }).catch(() => {});
+  }, []);
+
   const [signInOpen, setSignInOpen] = useState(false);
   const [signInReason, setSignInReason] = useState("");
 
@@ -143,7 +150,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     //    Google identity (it only unlocks UI; no student records depend on it).
     try {
       const ctrl = new AbortController();
-      const timer = setTimeout(() => ctrl.abort(), 4000);
+      const timer = setTimeout(() => ctrl.abort(), VERIFY_TIMEOUT_MS);
       const res = await fetch(`${API_URL}/auth/google-verify`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

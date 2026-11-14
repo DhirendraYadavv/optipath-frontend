@@ -169,3 +169,14 @@ test("signing out clears the login and then refreshes the page", () => {
   assert.match(header, /const handleSignOut = \(\) => \{\s*signOut\(\);\s*window\.location\.reload\(\);/);
   assert.match(header, /onClick=\{handleSignOut\}/);
 });
+
+test("sign-in waits long enough for a sleeping server and wakes it early", () => {
+  const auth = readFileSync("components/AuthProvider.tsx", "utf8");
+  const ms = Number(/VERIFY_TIMEOUT_MS = (\d+)/.exec(auth)?.[1]);
+  assert.ok(ms >= 30000, "the free host can take about a minute to wake: do not give up after a few seconds");
+  assert.match(auth, /abort\(\), VERIFY_TIMEOUT_MS/);
+  assert.match(auth, /fetch\(`\$\{API_URL\}\/`, \{ mode: "no-cors" \}\)/);
+  const modal = readFileSync("components/SignInModal.tsx", "utf8");
+  assert.match(modal, /Signing you in/);
+  assert.match(modal, /\}, 220\);/);
+});
