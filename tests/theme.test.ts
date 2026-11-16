@@ -180,3 +180,7 @@ test("sign-in waits long enough for a sleeping server and wakes it early", () =>
   assert.match(modal, /Signing you in/);
   assert.match(modal, /\}, 220\);/);
 });
+
+test("the browser tab title is the short site name", () => {
+  assert.match(readFileSync("app/layout.tsx", "utf8"), /title: "SGT Saathi",/);
+});

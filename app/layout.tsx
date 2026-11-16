@@ -30,7 +30,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "OptiPath | SGT Sahayak AI",
+  title: "SGT Saathi",
   description:
     "Check how ready you are for your target role, see your skill gap, and find the SGT Online programme that closes it.",
 };
